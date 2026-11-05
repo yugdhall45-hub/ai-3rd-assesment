@@ -1,0 +1,142 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model BusinessProfile {
+  id             String   @id @default("default")
+  name           String   @default("My Local Store")
+  tagline        String   @default("Quality Products & Daily Essentials")
+  phone          String   @default("+91 98765 43210")
+  email          String   @default("store@business.local")
+  address        String   @default("Shop No. 12, Main Market, City")
+  taxId          String   @default("GSTIN: 27AABCU9603R1ZM")
+  currency       String   @default("₹")
+  receiptFooter  String   @default("Thank you for your visit! Please come again.")
+  taxRate        Float    @default(0.0)
+  updatedAt      DateTime @updatedAt
+}
+
+model Product {
+  id           String        @id @default(uuid())
+  name         String
+  sku          String?       @unique
+  category     String        @default("General")
+  costPrice    Float         @default(0)
+  sellingPrice Float
+  stock        Int           @default(0)
+  unit         String        @default("pcs")
+  items        InvoiceItem[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+}
+
+model Customer {
+  id        String     @id @default(uuid())
+  name      String
+  phone     String?
+  email     String?
+  address   String?
+  notes     String?
+  invoices  Invoice[]
+  payments  Payment[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+
+model Invoice {
+  id            String        @id @default(uuid())
+  invoiceNumber String        @unique
+  date          DateTime      @default(now())
+  dateString    String        // Format: YYYY-MM-DD for fast daily indexing
+  customerId    String?
+  customer      Customer?     @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  customerName  String        @default("Walk-in Customer")
+  customerPhone String?
+  subtotal      Float
+  discount      Float         @default(0)
+  tax           Float         @default(0)
+  total         Float
+  paidAmount    Float         @default(0)
+  dueAmount     Float         @default(0)
+  paymentStatus String        @default("PAID") // PAID, PARTIAL, DUE
+  paymentMethod String        @default("CASH") // CASH, UPI, CARD, CREDIT
+  notes         String?
+  items         InvoiceItem[]
+  payments      Payment[]
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+}
+
+model InvoiceItem {
+  id          String   @id @default(uuid())
+  invoiceId   String
+  invoice     Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  productId   String?
+  product     Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+  productName String
+  quantity    Int      @default(1)
+  unitPrice   Float
+  total       Float
+}
+
+model Payment {
+  id            String   @id @default(uuid())
+  invoiceId     String?
+  invoice       Invoice? @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
+  customerId    String?
+  customer      Customer?@relation(fields: [customerId], references: [id], onDelete: SetNull)
+  amount        Float
+  paymentMethod String   @default("CASH") // CASH, UPI, CARD
+  paymentDate   DateTime @default(now())
+  dateString    String   // Format: YYYY-MM-DD
+  notes         String?
+  createdAt     DateTime @default(now())
+}
+
+model Expense {
+  id            String   @id @default(uuid())
+  title         String
+  category      String   // e.g. Rent, Utilities, Inventory, Tea & Refreshments, Wages, Transport, Maintenance, Misc
+  amount        Float
+  paymentMethod String   @default("CASH") // CASH, UPI, CARD, BANK
+  date          DateTime @default(now())
+  dateString    String   // Format: YYYY-MM-DD
+  reference     String?  // receipt number, bill no.
+  notes         String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model OtherIncome {
+  id            String   @id @default(uuid())
+  title         String
+  source        String   // Scrap sale, Service charge, Commission, Misc
+  amount        Float
+  paymentMethod String   @default("CASH")
+  date          DateTime @default(now())
+  dateString    String   // Format: YYYY-MM-DD
+  notes         String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model DaybookRegister {
+  id           String   @id @default(uuid())
+  dateString   String   @unique // Format: YYYY-MM-DD
+  openingCash  Float    @default(0)
+  cashInflow   Float    @default(0)
+  cashOutflow  Float    @default(0)
+  expectedCash Float    @default(0)
+  actualCash   Float?
+  difference   Float?
+  notes        String?
+  isClosed     Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
