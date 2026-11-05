@@ -1,98 +1,115 @@
 # Local Business Billing, Daybook & Financial Reporting Platform
 
-A modern, fast, full-stack POS Billing, Daily Expense & Income Tracker, Cash Register Daybook, Customer Khata (Udhar) Ledger, and Financial Reporting web application designed specifically for local businesses (retail stores, grocery shops, cafes, repair services, and distributors).
+A modern, fast, full-stack **POS Billing**, **Daily Expense & Income Tracker**, **Cash Register Daybook**, **Customer Khata (Udhar) Ledger**, and **Financial Reporting** web application designed specifically for local businesses.
 
 ---
 
 ## 🌟 Key Features
 
-1. **Point of Sale (POS) & Billing**
-   - Instant product search by name or barcode/SKU with quantity steppers.
-   - Walk-in customer or registered customer selector with quick-create modal.
-   - Custom line items support for loose or unlisted items.
-   - Multi-payment support: Cash, UPI / QR, Card, and Credit (Khata / Udhar).
-   - Instant calculation of subtotal, discounts, tax, and change returned.
-   - **Dual Print Modes**:
-     - **80mm Thermal Receipt**: Formatted for POS receipt printers.
-     - **Standard A4 Invoice**: Formal tax invoice for wholesale/corporate clients.
-   - Previous bills history with one-click due collection and re-printing.
-
-2. **Daily Expenses & Other Income Tracker**
-   - Quick logging of daily business overheads (Staff Tea/Snacks, Electricity & Utilities, Rent, Staff Wages, Inventory, Maintenance, Transport).
-   - Miscellaneous income logging (Cardboard scrap sales, courier commissions, service fees).
-   - Categorization and payment mode tagging (Cash, UPI, Card, Bank).
-
-3. **Daybook Register & Cash Drawer Reconciliation**
-   - Date stepper (`Prev`, `Today`, `Next`, or calendar picker) to audit any date.
-   - Cash register equation: Opening Cash + Cash Inflows − Cash Expenses = Expected Drawer Cash.
-   - Physical cash count reconciliation with immediate shortage / excess alerts.
-   - Unified chronological daily transaction activity stream.
-   - One-click Daybook CSV export and printable audit format.
-
-4. **Customers & Khata (Udhar) Management**
-   - Customer directory tracking outstanding dues.
-   - Live status badges (`Pending Khata` vs `All Clear`).
-   - Settle debts with partial or full repayment, automatically updating invoices and logging cash inflow into today's daybook.
-
-5. **Inventory & Product Master**
-   - SKU, category, cost price, selling price, and stock levels.
-   - Profit margin calculations per product.
-   - Low-stock warning badges (triggered when stock $\le$ 10).
-   - Inventory valuation: Total Wholesale Cost vs Total Retail Revenue Potential.
-
-6. **Comprehensive Financial Reports & Analytics**
-   - **Profit & Loss (P&L)**: Date range filter (Today, 7 Days, Month, Year, Custom Range) calculating Total Revenue, Cost of Goods Sold (COGS), Gross Profit, Operating Expenses, and Net Profit Margin.
-   - **Category Expense Breakdown**: Visual percentage bars and totals.
-   - **Sales by Payment Method**: Distribution of Cash vs UPI vs Card vs Credit.
-   - **Top Selling Products**: Ranked by quantity sold and revenue generated.
-   - **Export to CSV / Excel**: One-click download for accounting.
-
-7. **Store Profile & Customization**
-   - Store Name, Tagline, Phone, Email, Address, GSTIN / Tax ID.
-   - Configurable currency symbol (`₹`, `$`, `€`, `£`, `AED`, etc.).
-   - Default tax percentage.
-   - Receipt header and footer note customization.
+1. **Point of Sale (POS) & Billing** — Instant checkout, thermal receipt & A4 invoice printing, multi-payment modes (Cash, UPI, Card, Khata/Credit)
+2. **Daily Expenses & Other Income** — Log overheads (Tea, Utilities, Rent, Wages, Inventory) and miscellaneous income (Scrap sales, commissions)
+3. **Daybook & Cash Drawer Reconciliation** — Browse any date's full ledger, calculate expected vs actual drawer cash
+4. **Customer Khata (Udhar) Ledger** — Track outstanding dues, record repayments, auto-settle oldest invoices
+5. **Inventory & Product Catalog** — Cost/selling price, stock tracking with low-stock alerts
+6. **Reports & P&L Analytics** — Profit & Loss, expense breakdown, payment mode distribution, top products, CSV export
 
 ---
 
 ## 🛠️ Technology Stack
 
-- **Framework**: [Next.js 15](https://nextjs.org/) (App Router, React 19, TypeScript)
-- **Styling**: [Tailwind CSS](https://tailwindcss.com/)
-- **Icons**: [Lucide React](https://lucide.dev/)
-- **Database & ORM**: SQLite with [Prisma ORM](https://www.prisma.io/)
-- **Printing**: Native CSS `@media print` with optimized layouts for 80mm thermal receipts and A4 invoices.
+| Layer | Technology |
+| :--- | :--- |
+| Framework | Next.js 15 (App Router, TypeScript) |
+| Styling | Tailwind CSS + Lucide Icons |
+| Database | PostgreSQL via **Neon** (serverless) |
+| ORM | Prisma ORM |
+| Deployment | Vercel |
 
 ---
 
-## 🚀 Getting Started
+## 🚀 Local Development Setup
 
-### 1. Prerequisites
-- Node.js (v18.17 or higher)
-- npm
-
-### 2. Installation
+### 1. Clone the Repository
 ```bash
-# Clone the repository
 git clone https://github.com/yugdhall45-hub/ai-3rd-assesment.git
 cd ai-3rd-assesment
-
-# Install dependencies
-npm install
-
-# Initialize SQLite database and Prisma client
-npx prisma db push
-
-# (Optional) Seed sample data
-npx tsx prisma/seed.ts
 ```
 
-### 3. Run Development Server
+### 2. Install Dependencies
+```bash
+npm install
+```
+
+### 3. Create a Free Neon PostgreSQL Database
+1. Go to [neon.tech](https://neon.tech) and sign up for free
+2. Create a new project → note your **Connection Strings**
+3. In your Neon Dashboard → **Connection Details** → copy both:
+   - **Pooled connection string** (for `DATABASE_URL`)
+   - **Direct connection string** (for `DIRECT_URL`)
+
+### 4. Set Up Environment Variables
+```bash
+# Copy the example file
+cp .env.example .env
+```
+
+Edit `.env` and fill in your Neon credentials:
+```env
+DATABASE_URL="postgresql://USER:PASSWORD@ep-xxx.region.aws.neon.tech/neondb?sslmode=require&pgbouncer=true&connect_timeout=15"
+DIRECT_URL="postgresql://USER:PASSWORD@ep-xxx.region.aws.neon.tech/neondb?sslmode=require"
+```
+
+### 5. Push Database Schema
+```bash
+npm run db:push
+```
+
+### 6. (Optional) Seed Sample Data
+```bash
+npm run db:seed
+```
+
+### 7. Start Development Server
 ```bash
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) in your browser.
+Open [http://localhost:3000](http://localhost:3000)
+
+---
+
+## ☁️ Vercel Deployment Guide
+
+### Step 1: Push to GitHub (already done)
+```bash
+git push origin main
+```
+
+### Step 2: Import Project on Vercel
+1. Go to [vercel.com](https://vercel.com) → **New Project**
+2. Import your GitHub repo `yugdhall45-hub/ai-3rd-assesment`
+3. Framework: **Next.js** (auto-detected)
+
+### Step 3: Set Environment Variables on Vercel
+In your Vercel project → **Settings** → **Environment Variables**, add:
+
+| Key | Value |
+| :--- | :--- |
+| `DATABASE_URL` | Your Neon **pooled** connection string |
+| `DIRECT_URL` | Your Neon **direct** connection string |
+
+### Step 4: Deploy
+Click **Deploy**. Vercel will auto-run `npm install` → `prisma generate` → `next build`.
+
+### Step 5: Initialize Database (First Deploy)
+After deployment, run this once to create tables in Neon:
+```bash
+# From your local machine (with .env set up):
+npm run db:push
+
+# To populate sample data:
+npm run db:seed
+```
 
 ---
 
@@ -100,30 +117,32 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ```text
 ├── app/
-│   ├── billing/page.tsx      # POS Billing & Receipt/Invoice Printing
-│   ├── customers/page.tsx    # Customer Khata & Credit Accounts
-│   ├── daybook/page.tsx      # Daily Records, Cash Register & Ledger
-│   ├── expenses/page.tsx     # Daily Expenses & Income Tracker
-│   ├── inventory/page.tsx    # Product Master & Stock Valuation
-│   ├── reports/page.tsx      # Profit & Loss, Trends & CSV Export
-│   ├── settings/page.tsx     # Store Profile, Currency & Print Config
-│   ├── layout.tsx            # Global Layout with responsive Sidebar & Navbar
-│   ├── page.tsx              # Main Dashboard with KPI metrics & Activity
-│   └── globals.css           # Styling & Print Media Rules
+│   ├── page.tsx              # Dashboard (KPIs, Quick Actions)
+│   ├── billing/page.tsx      # POS Billing & Invoice Printing
+│   ├── customers/page.tsx    # Customer Khata & Dues
+│   ├── daybook/page.tsx      # Cash Register & Daily Ledger
+│   ├── expenses/page.tsx     # Daily Expenses & Other Income
+│   ├── inventory/page.tsx    # Product Catalog & Stock
+│   ├── reports/page.tsx      # P&L Reports & CSV Export
+│   ├── settings/page.tsx     # Store Profile & Settings
+│   ├── layout.tsx            # App Layout (Sidebar + Navbar)
+│   └── globals.css           # Global Styles & Print Rules
 ├── components/
 │   ├── Sidebar.tsx           # Navigation Sidebar
-│   └── Navbar.tsx            # Header with Date and Quick Actions
+│   └── Navbar.tsx            # Header with Quick Actions
 ├── lib/
 │   ├── actions.ts            # Server Actions & Business Logic
-│   ├── prisma.ts             # Prisma Singleton Client
-│   └── types.ts              # Shared TypeScript Interfaces
-└── prisma/
-    ├── schema.prisma         # Database Models
-    └── seed.ts               # Sample Business Data Seeder
+│   ├── prisma.ts             # Prisma Client Singleton
+│   └── types.ts              # TypeScript Interfaces
+├── prisma/
+│   ├── schema.prisma         # Database Models (PostgreSQL)
+│   └── seed.ts               # Sample Data Seeder
+├── vercel.json               # Vercel Deployment Config
+├── .env.example              # Environment Variables Template
+└── README.md
 ```
 
 ---
 
 ## 📄 License
 MIT License
-
