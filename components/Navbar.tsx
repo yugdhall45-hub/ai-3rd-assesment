@@ -2,14 +2,23 @@
 
 import Link from "next/link";
 import { useState, useEffect } from "react";
-import { PlusCircle, Receipt, ArrowDownCircle, ArrowUpCircle, Calendar } from "lucide-react";
+import { Receipt, ArrowDownCircle, ArrowUpCircle, Calendar, User, LogOut } from "lucide-react";
+import { logoutAction } from "@/lib/auth-actions";
 
 interface NavbarProps {
   businessName?: string;
   currency?: string;
+  user?: {
+    name: string;
+    email: string;
+  };
 }
 
-export default function Navbar({ businessName = "SmartBazaar Local Mart", currency = "₹" }: NavbarProps) {
+export default function Navbar({
+  businessName = "SmartBazaar Local Mart",
+  currency = "₹",
+  user,
+}: NavbarProps) {
   const [currentDate, setCurrentDate] = useState("");
 
   useEffect(() => {
@@ -61,8 +70,19 @@ export default function Navbar({ businessName = "SmartBazaar Local Mart", curren
           <Receipt className="w-3.5 h-3.5" />
           <span>+ New Bill (POS)</span>
         </Link>
+
+        {user && (
+          <form action={logoutAction} className="md:hidden">
+            <button
+              type="submit"
+              title="Logout"
+              className="p-2 rounded-lg text-slate-500 hover:text-rose-600 hover:bg-rose-50 transition border border-slate-200"
+            >
+              <LogOut className="w-4 h-4" />
+            </button>
+          </form>
+        )}
       </div>
     </header>
   );
 }
-

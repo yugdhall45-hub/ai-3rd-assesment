@@ -12,14 +12,25 @@ import {
   BarChart3,
   Settings,
   Store,
+  LogOut,
+  UserCheck,
 } from "lucide-react";
+import { logoutAction } from "@/lib/auth-actions";
 
 interface SidebarProps {
   businessName?: string;
   currency?: string;
+  user?: {
+    name: string;
+    email: string;
+  };
 }
 
-export default function Sidebar({ businessName = "SmartBazaar Mart", currency = "₹" }: SidebarProps) {
+export default function Sidebar({
+  businessName = "SmartBazaar Mart",
+  currency = "₹",
+  user,
+}: SidebarProps) {
   const pathname = usePathname();
 
   const navItems = [
@@ -32,6 +43,15 @@ export default function Sidebar({ businessName = "SmartBazaar Mart", currency = 
     { name: "Reports & Analytics", href: "/reports", icon: BarChart3 },
     { name: "Store Settings", href: "/settings", icon: Settings },
   ];
+
+  const initials = user?.name
+    ? user.name
+        .split(" ")
+        .map((n) => n[0])
+        .slice(0, 2)
+        .join("")
+        .toUpperCase()
+    : "ST";
 
   return (
     <aside className="w-64 bg-slate-900 text-slate-200 flex flex-col border-r border-slate-800 no-print flex-shrink-0 min-h-screen">
@@ -76,19 +96,39 @@ export default function Sidebar({ businessName = "SmartBazaar Mart", currency = 
         })}
       </nav>
 
-      {/* Bottom Footer Info */}
-      <div className="p-4 border-t border-slate-800/80 bg-slate-950/40">
-        <div className="bg-slate-800/70 rounded-lg p-3 border border-slate-700/50">
-          <div className="flex items-center justify-between text-xs text-slate-400">
-            <span>Currency Mode</span>
-            <span className="font-bold text-emerald-400">{currency} Default</span>
+      {/* User Session & Logout Footer */}
+      <div className="p-3 border-t border-slate-800/80 bg-slate-950/60 space-y-2">
+        {user && (
+          <div className="flex items-center justify-between p-2 rounded-xl bg-slate-900/90 border border-slate-800">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="w-8 h-8 rounded-lg bg-emerald-600/20 border border-emerald-500/30 text-emerald-400 font-bold text-xs flex items-center justify-center shrink-0">
+                {initials}
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs font-semibold text-white truncate">{user.name}</p>
+                <p className="text-[10px] text-slate-400 truncate">{user.email}</p>
+              </div>
+            </div>
+
+            <form action={logoutAction}>
+              <button
+                type="submit"
+                title="Sign Out"
+                className="p-1.5 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 transition cursor-pointer"
+              >
+                <LogOut className="w-4 h-4" />
+              </button>
+            </form>
           </div>
-          <div className="mt-2 text-[11px] text-slate-400">
-            Offline-first SQLite local business bookkeeping.
-          </div>
+        )}
+
+        <div className="flex items-center justify-between px-2 text-[11px] text-slate-500">
+          <span>Currency: <strong className="text-emerald-400">{currency}</strong></span>
+          <span className="flex items-center gap-1 text-slate-400">
+            <UserCheck className="w-3 h-3 text-emerald-500" /> Private Store
+          </span>
         </div>
       </div>
     </aside>
   );
 }
-

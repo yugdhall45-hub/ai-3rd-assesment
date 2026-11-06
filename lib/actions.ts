@@ -2,16 +2,20 @@
 
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
+import { requireUser } from "@/lib/auth";
 
+// ================= BUSINESS PROFILE =================
 export async function getBusinessProfile() {
+  const user = await requireUser();
   const profile = await prisma.businessProfile.upsert({
-    where: { id: "default" },
+    where: { userId: user.userId },
     update: {},
     create: {
-      id: "default",
-      name: "My Local Store",
+      userId: user.userId,
+      name: `${user.name}'s Store`,
       currency: "₹",
-      taxRate: 5.0,
+      taxRate: 0.0,
+      email: user.email,
     },
   });
   return profile;
@@ -28,10 +32,11 @@ export async function updateBusinessProfile(data: {
   receiptFooter: string;
   taxRate: number;
 }) {
+  const user = await requireUser();
   const updated = await prisma.businessProfile.upsert({
-    where: { id: "default" },
+    where: { userId: user.userId },
     update: data,
-    create: { id: "default", ...data },
+    create: { userId: user.userId, ...data },
   });
   revalidatePath("/");
   revalidatePath("/billing");
@@ -41,7 +46,9 @@ export async function updateBusinessProfile(data: {
 
 // ================= PRODUCTS / INVENTORY =================
 export async function getProducts() {
+  const user = await requireUser();
   return await prisma.product.findMany({
+    where: { userId: user.userId },
     orderBy: { name: "asc" },
   });
 }
@@ -55,8 +62,10 @@ export async function createProduct(data: {
   stock: number;
   unit: string;
 }) {
+  const user = await requireUser();
   const prod = await prisma.product.create({
     data: {
+      userId: user.userId,
       name: data.name,
       sku: data.sku || undefined,
       category: data.category || "General",
@@ -83,8 +92,9 @@ export async function updateProduct(
     unit?: string;
   }
 ) {
+  const user = await requireUser();
   const prod = await prisma.product.update({
-    where: { id },
+    where: { id, userId: user.userId },
     data: {
       ...data,
       costPrice: data.costPrice !== undefined ? Number(data.costPrice) : undefined,
@@ -98,7 +108,10 @@ export async function updateProduct(
 }
 
 export async function deleteProduct(id: string) {
-  await prisma.product.delete({ where: { id } });
+  const user = await requireUser();
+  await prisma.product.delete({
+    where: { id, userId: user.userId },
+  });
   revalidatePath("/inventory");
   revalidatePath("/billing");
   return { success: true };
@@ -106,7 +119,9 @@ export async function deleteProduct(id: string) {
 
 // ================= CUSTOMERS & KHATA =================
 export async function getCustomers() {
+  const user = await requireUser();
   const customers = await prisma.customer.findMany({
+    where: { userId: user.userId },
     include: {
       invoices: {
         select: {
@@ -136,8 +151,12 @@ export async function createCustomer(data: {
   address?: string;
   notes?: string;
 }) {
+  const user = await requireUser();
   const cust = await prisma.customer.create({
-    data,
+    data: {
+      ...data,
+      userId: user.userId,
+    },
   });
   revalidatePath("/customers");
   revalidatePath("/billing");
@@ -150,9 +169,11 @@ export async function recordCustomerPayment(data: {
   paymentMethod: string;
   notes?: string;
 }) {
+  const user = await requireUser();
   const today = new Date().toISOString().split("T")[0];
   const payment = await prisma.payment.create({
     data: {
+      userId: user.userId,
       customerId: data.customerId,
       amount: Number(data.amount),
       paymentMethod: data.paymentMethod || "CASH",
@@ -165,6 +186,7 @@ export async function recordCustomerPayment(data: {
   let remainingPayment = Number(data.amount);
   const pendingInvoices = await prisma.invoice.findMany({
     where: {
+      userId: user.userId,
       customerId: data.customerId,
       dueAmount: { gt: 0 },
     },
@@ -179,7 +201,7 @@ export async function recordCustomerPayment(data: {
     const newStatus = newDue <= 0.01 ? "PAID" : "PARTIAL";
 
     await prisma.invoice.update({
-      where: { id: inv.id },
+      where: { id: inv.id, userId: user.userId },
       data: {
         paidAmount: newPaid,
         dueAmount: Math.max(0, newDue),
@@ -198,8 +220,12 @@ export async function recordCustomerPayment(data: {
 
 // ================= INVOICES & BILLING =================
 export async function getInvoices(limit = 50, dateString?: string) {
+  const user = await requireUser();
   return await prisma.invoice.findMany({
-    where: dateString ? { dateString } : undefined,
+    where: {
+      userId: user.userId,
+      ...(dateString ? { dateString } : {}),
+    },
     include: {
       items: true,
       payments: true,
@@ -228,7 +254,10 @@ export async function createInvoice(data: {
   paymentMethod: "CASH" | "UPI" | "CARD" | "CREDIT";
   notes?: string;
 }) {
-  const count = await prisma.invoice.count();
+  const user = await requireUser();
+  const count = await prisma.invoice.count({
+    where: { userId: user.userId },
+  });
   const invoiceNumber = `INV-${new Date().getFullYear()}-${String(count + 1).padStart(4, "0")}`;
   const today = new Date().toISOString().split("T")[0];
 
@@ -242,6 +271,7 @@ export async function createInvoice(data: {
 
   const invoice = await prisma.invoice.create({
     data: {
+      userId: user.userId,
       invoiceNumber,
       date: new Date(),
       dateString: today,
@@ -268,6 +298,7 @@ export async function createInvoice(data: {
       },
       payments: paidAmount > 0 ? {
         create: {
+          userId: user.userId,
           customerId: data.customerId || null,
           amount: paidAmount,
           paymentMethod: data.paymentMethod === "CREDIT" ? "CASH" : data.paymentMethod,
@@ -286,7 +317,7 @@ export async function createInvoice(data: {
   for (const item of data.items) {
     if (item.productId) {
       await prisma.product.update({
-        where: { id: item.productId },
+        where: { id: item.productId, userId: user.userId },
         data: {
           stock: {
             decrement: item.quantity,
@@ -305,7 +336,10 @@ export async function createInvoice(data: {
 }
 
 export async function markInvoicePaid(invoiceId: string, amount: number, paymentMethod: string) {
-  const inv = await prisma.invoice.findUnique({ where: { id: invoiceId } });
+  const user = await requireUser();
+  const inv = await prisma.invoice.findFirst({
+    where: { id: invoiceId, userId: user.userId },
+  });
   if (!inv) throw new Error("Invoice not found");
 
   const today = new Date().toISOString().split("T")[0];
@@ -315,6 +349,7 @@ export async function markInvoicePaid(invoiceId: string, amount: number, payment
 
   await prisma.payment.create({
     data: {
+      userId: user.userId,
       invoiceId: inv.id,
       customerId: inv.customerId,
       amount,
@@ -325,7 +360,7 @@ export async function markInvoicePaid(invoiceId: string, amount: number, payment
   });
 
   const updated = await prisma.invoice.update({
-    where: { id: invoiceId },
+    where: { id: invoiceId, userId: user.userId },
     data: {
       paidAmount: newPaid,
       dueAmount: newDue,
@@ -342,8 +377,12 @@ export async function markInvoicePaid(invoiceId: string, amount: number, payment
 
 // ================= DAILY EXPENSES & INCOME =================
 export async function getExpenses(limit = 100, dateString?: string) {
+  const user = await requireUser();
   return await prisma.expense.findMany({
-    where: dateString ? { dateString } : undefined,
+    where: {
+      userId: user.userId,
+      ...(dateString ? { dateString } : {}),
+    },
     orderBy: { date: "desc" },
     take: limit,
   });
@@ -358,9 +397,11 @@ export async function createExpense(data: {
   reference?: string;
   notes?: string;
 }) {
+  const user = await requireUser();
   const today = data.dateString || new Date().toISOString().split("T")[0];
   const expense = await prisma.expense.create({
     data: {
+      userId: user.userId,
       title: data.title,
       category: data.category || "General",
       amount: Number(data.amount),
@@ -378,7 +419,10 @@ export async function createExpense(data: {
 }
 
 export async function deleteExpense(id: string) {
-  await prisma.expense.delete({ where: { id } });
+  const user = await requireUser();
+  await prisma.expense.delete({
+    where: { id, userId: user.userId },
+  });
   revalidatePath("/expenses");
   revalidatePath("/daybook");
   revalidatePath("/");
@@ -386,8 +430,12 @@ export async function deleteExpense(id: string) {
 }
 
 export async function getOtherIncomes(limit = 100, dateString?: string) {
+  const user = await requireUser();
   return await prisma.otherIncome.findMany({
-    where: dateString ? { dateString } : undefined,
+    where: {
+      userId: user.userId,
+      ...(dateString ? { dateString } : {}),
+    },
     orderBy: { date: "desc" },
     take: limit,
   });
@@ -401,9 +449,11 @@ export async function createOtherIncome(data: {
   dateString?: string;
   notes?: string;
 }) {
+  const user = await requireUser();
   const today = data.dateString || new Date().toISOString().split("T")[0];
   const income = await prisma.otherIncome.create({
     data: {
+      userId: user.userId,
       title: data.title,
       source: data.source || "Misc",
       amount: Number(data.amount),
@@ -420,7 +470,10 @@ export async function createOtherIncome(data: {
 }
 
 export async function deleteOtherIncome(id: string) {
-  await prisma.otherIncome.delete({ where: { id } });
+  const user = await requireUser();
+  await prisma.otherIncome.delete({
+    where: { id, userId: user.userId },
+  });
   revalidatePath("/expenses");
   revalidatePath("/daybook");
   revalidatePath("/");
@@ -429,33 +482,39 @@ export async function deleteOtherIncome(id: string) {
 
 // ================= DAYBOOK & DAILY BUSINESS RECORDS =================
 export async function getDaybook(dateString?: string) {
+  const user = await requireUser();
   const targetDate = dateString || new Date().toISOString().split("T")[0];
 
-  // Fetch or create daybook register entry
+  // Fetch or create daybook register entry for this user
   let register = await prisma.daybookRegister.findUnique({
-    where: { dateString: targetDate },
+    where: {
+      userId_dateString: {
+        userId: user.userId,
+        dateString: targetDate,
+      },
+    },
   });
 
   // Calculate day totals
   const invoices = await prisma.invoice.findMany({
-    where: { dateString: targetDate },
+    where: { userId: user.userId, dateString: targetDate },
     include: { items: true },
     orderBy: { createdAt: "desc" },
   });
 
   const payments = await prisma.payment.findMany({
-    where: { dateString: targetDate },
+    where: { userId: user.userId, dateString: targetDate },
     include: { customer: true, invoice: true },
     orderBy: { createdAt: "desc" },
   });
 
   const expenses = await prisma.expense.findMany({
-    where: { dateString: targetDate },
+    where: { userId: user.userId, dateString: targetDate },
     orderBy: { createdAt: "desc" },
   });
 
   const otherIncomes = await prisma.otherIncome.findMany({
-    where: { dateString: targetDate },
+    where: { userId: user.userId, dateString: targetDate },
     orderBy: { createdAt: "desc" },
   });
 
@@ -578,6 +637,7 @@ export async function saveDaybookRegister(data: {
   notes?: string;
   isClosed?: boolean;
 }) {
+  const user = await requireUser();
   const dayData = await getDaybook(data.dateString);
   const opening = Number(data.openingCash) || 0;
   const expected = opening + dayData.metrics.totalCashIn - dayData.metrics.totalCashOut;
@@ -585,7 +645,12 @@ export async function saveDaybookRegister(data: {
   const diff = actual !== null ? actual - expected : null;
 
   const reg = await prisma.daybookRegister.upsert({
-    where: { dateString: data.dateString },
+    where: {
+      userId_dateString: {
+        userId: user.userId,
+        dateString: data.dateString,
+      },
+    },
     update: {
       openingCash: opening,
       cashInflow: dayData.metrics.totalCashIn,
@@ -597,6 +662,7 @@ export async function saveDaybookRegister(data: {
       isClosed: data.isClosed ?? false,
     },
     create: {
+      userId: user.userId,
       dateString: data.dateString,
       openingCash: opening,
       cashInflow: dayData.metrics.totalCashIn,
@@ -616,12 +682,14 @@ export async function saveDaybookRegister(data: {
 
 // ================= REPORTS & ANALYTICS =================
 export async function getReports(startDate?: string, endDate?: string) {
+  const user = await requireUser();
   const today = new Date().toISOString().split("T")[0];
   const dStart = startDate || today;
   const dEnd = endDate || today;
 
   const invoices = await prisma.invoice.findMany({
     where: {
+      userId: user.userId,
       dateString: {
         gte: dStart,
         lte: dEnd,
@@ -636,6 +704,7 @@ export async function getReports(startDate?: string, endDate?: string) {
 
   const expenses = await prisma.expense.findMany({
     where: {
+      userId: user.userId,
       dateString: {
         gte: dStart,
         lte: dEnd,
@@ -645,6 +714,7 @@ export async function getReports(startDate?: string, endDate?: string) {
 
   const otherIncomes = await prisma.otherIncome.findMany({
     where: {
+      userId: user.userId,
       dateString: {
         gte: dStart,
         lte: dEnd,
@@ -723,4 +793,3 @@ export async function getReports(startDate?: string, endDate?: string) {
     topProducts,
   };
 }
-

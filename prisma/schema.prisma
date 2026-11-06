@@ -7,24 +7,45 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model User {
+  id               String            @id @default(uuid())
+  email            String            @unique
+  password         String
+  name             String
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  businessProfile  BusinessProfile?
+  products         Product[]
+  customers        Customer[]
+  invoices         Invoice[]
+  payments         Payment[]
+  expenses         Expense[]
+  otherIncomes     OtherIncome[]
+  daybookRegisters DaybookRegister[]
+}
+
 model BusinessProfile {
-  id             String   @id @default("default")
-  name           String   @default("My Local Store")
-  tagline        String   @default("Quality Products & Daily Essentials")
-  phone          String   @default("+91 98765 43210")
-  email          String   @default("store@business.local")
-  address        String   @default("Shop No. 12, Main Market, City")
-  taxId          String   @default("GSTIN: 27AABCU9603R1ZM")
-  currency       String   @default("₹")
-  receiptFooter  String   @default("Thank you for your visit! Please come again.")
-  taxRate        Float    @default(0.0)
-  updatedAt      DateTime @updatedAt
+  id            String   @id @default(uuid())
+  userId        String   @unique
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name          String   @default("My Local Store")
+  tagline       String   @default("Quality Products & Daily Essentials")
+  phone         String   @default("+91 98765 43210")
+  email         String   @default("store@business.local")
+  address       String   @default("Shop No. 12, Main Market, City")
+  taxId         String   @default("GSTIN: 27AABCU9603R1ZM")
+  currency      String   @default("₹")
+  receiptFooter String   @default("Thank you for your visit! Please come again.")
+  taxRate       Float    @default(0.0)
+  updatedAt     DateTime @updatedAt
 }
 
 model Product {
   id           String        @id @default(uuid())
+  userId       String
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   name         String
-  sku          String?       @unique
+  sku          String?
   category     String        @default("General")
   costPrice    Float         @default(0)
   sellingPrice Float
@@ -33,10 +54,14 @@ model Product {
   items        InvoiceItem[]
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
+
+  @@index([userId])
 }
 
 model Customer {
   id        String     @id @default(uuid())
+  userId    String
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
   name      String
   phone     String?
   email     String?
@@ -46,11 +71,15 @@ model Customer {
   payments  Payment[]
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
+
+  @@index([userId])
 }
 
 model Invoice {
   id            String        @id @default(uuid())
-  invoiceNumber String        @unique
+  userId        String
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  invoiceNumber String
   date          DateTime      @default(now())
   dateString    String
   customerId    String?
@@ -70,6 +99,9 @@ model Invoice {
   payments      Payment[]
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
+
+  @@unique([userId, invoiceNumber])
+  @@index([userId])
 }
 
 model InvoiceItem {
@@ -86,6 +118,8 @@ model InvoiceItem {
 
 model Payment {
   id            String    @id @default(uuid())
+  userId        String
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   invoiceId     String?
   invoice       Invoice?  @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
   customerId    String?
@@ -96,10 +130,14 @@ model Payment {
   dateString    String
   notes         String?
   createdAt     DateTime  @default(now())
+
+  @@index([userId])
 }
 
 model Expense {
   id            String   @id @default(uuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   title         String
   category      String
   amount        Float
@@ -110,10 +148,14 @@ model Expense {
   notes         String?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
+
+  @@index([userId])
 }
 
 model OtherIncome {
   id            String   @id @default(uuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   title         String
   source        String
   amount        Float
@@ -123,11 +165,15 @@ model OtherIncome {
   notes         String?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
+
+  @@index([userId])
 }
 
 model DaybookRegister {
   id           String   @id @default(uuid())
-  dateString   String   @unique
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  dateString   String
   openingCash  Float    @default(0)
   cashInflow   Float    @default(0)
   cashOutflow  Float    @default(0)
@@ -138,4 +184,7 @@ model DaybookRegister {
   isClosed     Boolean  @default(false)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+
+  @@unique([userId, dateString])
+  @@index([userId])
 }
