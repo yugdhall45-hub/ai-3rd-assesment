@@ -38,3 +38,6 @@ prisma/dev.db-journal
 .DS_Store
 Thumbs.db
 *.tsbuildinfo
+
+.vercel
+.env*

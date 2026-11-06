@@ -3,9 +3,8 @@ generator client {
 }
 
 datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 model BusinessProfile {
@@ -53,7 +52,7 @@ model Invoice {
   id            String        @id @default(uuid())
   invoiceNumber String        @unique
   date          DateTime      @default(now())
-  dateString    String        // Format: YYYY-MM-DD for fast daily indexing
+  dateString    String
   customerId    String?
   customer      Customer?     @relation(fields: [customerId], references: [id], onDelete: SetNull)
   customerName  String        @default("Walk-in Customer")
@@ -64,8 +63,8 @@ model Invoice {
   total         Float
   paidAmount    Float         @default(0)
   dueAmount     Float         @default(0)
-  paymentStatus String        @default("PAID") // PAID, PARTIAL, DUE
-  paymentMethod String        @default("CASH") // CASH, UPI, CARD, CREDIT
+  paymentStatus String        @default("PAID")
+  paymentMethod String        @default("CASH")
   notes         String?
   items         InvoiceItem[]
   payments      Payment[]
@@ -86,28 +85,28 @@ model InvoiceItem {
 }
 
 model Payment {
-  id            String   @id @default(uuid())
+  id            String    @id @default(uuid())
   invoiceId     String?
-  invoice       Invoice? @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
+  invoice       Invoice?  @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
   customerId    String?
-  customer      Customer?@relation(fields: [customerId], references: [id], onDelete: SetNull)
+  customer      Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
   amount        Float
-  paymentMethod String   @default("CASH") // CASH, UPI, CARD
-  paymentDate   DateTime @default(now())
-  dateString    String   // Format: YYYY-MM-DD
+  paymentMethod String    @default("CASH")
+  paymentDate   DateTime  @default(now())
+  dateString    String
   notes         String?
-  createdAt     DateTime @default(now())
+  createdAt     DateTime  @default(now())
 }
 
 model Expense {
   id            String   @id @default(uuid())
   title         String
-  category      String   // e.g. Rent, Utilities, Inventory, Tea & Refreshments, Wages, Transport, Maintenance, Misc
+  category      String
   amount        Float
-  paymentMethod String   @default("CASH") // CASH, UPI, CARD, BANK
+  paymentMethod String   @default("CASH")
   date          DateTime @default(now())
-  dateString    String   // Format: YYYY-MM-DD
-  reference     String?  // receipt number, bill no.
+  dateString    String
+  reference     String?
   notes         String?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
@@ -116,11 +115,11 @@ model Expense {
 model OtherIncome {
   id            String   @id @default(uuid())
   title         String
-  source        String   // Scrap sale, Service charge, Commission, Misc
+  source        String
   amount        Float
   paymentMethod String   @default("CASH")
   date          DateTime @default(now())
-  dateString    String   // Format: YYYY-MM-DD
+  dateString    String
   notes         String?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
@@ -128,7 +127,7 @@ model OtherIncome {
 
 model DaybookRegister {
   id           String   @id @default(uuid())
-  dateString   String   @unique // Format: YYYY-MM-DD
+  dateString   String   @unique
   openingCash  Float    @default(0)
   cashInflow   Float    @default(0)
   cashOutflow  Float    @default(0)
@@ -140,4 +139,3 @@ model DaybookRegister {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 }
-
