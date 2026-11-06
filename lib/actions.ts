@@ -4,19 +4,16 @@ import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 
 export async function getBusinessProfile() {
-  let profile = await prisma.businessProfile.findUnique({
+  const profile = await prisma.businessProfile.upsert({
     where: { id: "default" },
+    update: {},
+    create: {
+      id: "default",
+      name: "My Local Store",
+      currency: "₹",
+      taxRate: 5.0,
+    },
   });
-  if (!profile) {
-    profile = await prisma.businessProfile.create({
-      data: {
-        id: "default",
-        name: "My Local Store",
-        currency: "₹",
-        taxRate: 5.0,
-      },
-    });
-  }
   return profile;
 }
 
