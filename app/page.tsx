@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import { getBusinessProfile, getInvoices, getExpenses, getOtherIncomes, getDaybook, getCustomers } from "@/lib/actions";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 30; // Cache for 30 seconds
 
 export default async function DashboardPage() {
   const profile = await getBusinessProfile();
