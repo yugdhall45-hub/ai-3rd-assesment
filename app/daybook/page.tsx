@@ -80,10 +80,10 @@ export default function DaybookPage() {
 
   const changeDateByDays = (days: number) => {
     const parts = selectedDate.split("-").map(Number);
-    const d = new Date(parts[0], parts[1] - 1, parts[2] + days);
-    const y = d.getFullYear();
-    const m = String(d.getMonth() + 1).padStart(2, "0");
-    const day = String(d.getDate()).padStart(2, "0");
+    const d = new Date(Date.UTC(parts[0], parts[1] - 1, parts[2] + days));
+    const y = d.getUTCFullYear();
+    const m = String(d.getUTCMonth() + 1).padStart(2, "0");
+    const day = String(d.getUTCDate()).padStart(2, "0");
     setSelectedDate(`${y}-${m}-${day}`);
   };
 
@@ -130,15 +130,16 @@ export default function DaybookPage() {
       ]),
     ];
 
-    const csvContent =
-      "data:text/csv;charset=utf-8," + rows.map((r) => r.join(",")).join("\n");
-    const encodedUri = encodeURI(csvContent);
+    const csvContent = rows.map((r) => r.join(",")).join("\n");
+    const blob = new Blob(["\uFEFF" + csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
+    link.href = url;
     link.setAttribute("download", `Daybook_${selectedDate}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   };
 
   const expectedCash = dayData ? dayData.metrics.expectedCash : 0;

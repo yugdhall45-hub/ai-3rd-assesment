@@ -117,6 +117,17 @@ export default function BillingPage() {
   useEffect(() => {
     // If cached data is already present, fetch silently in background (stale-while-revalidate)
     loadData(Boolean(cachedBillingData));
+
+    const handleProfileUpdate = (e: any) => {
+      if (e.detail) {
+        setProfile((prev: any) => ({ ...prev, ...e.detail }));
+        if (cachedBillingData) {
+          cachedBillingData.profile = { ...cachedBillingData.profile, ...e.detail };
+        }
+      }
+    };
+    window.addEventListener("profile-updated", handleProfileUpdate);
+    return () => window.removeEventListener("profile-updated", handleProfileUpdate);
   }, []);
 
   // Cart Calculations

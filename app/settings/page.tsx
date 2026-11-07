@@ -45,7 +45,7 @@ export default function SettingsPage() {
     setSuccessMsg("");
 
     try {
-      await updateBusinessProfile({
+      const payload = {
         name: profile.name,
         tagline: profile.tagline || "",
         phone: profile.phone || "",
@@ -55,7 +55,12 @@ export default function SettingsPage() {
         currency: profile.currency || "₹",
         receiptFooter: profile.receiptFooter || "",
         taxRate: parseFloat(profile.taxRate) || 0,
-      });
+      };
+      await updateBusinessProfile(payload);
+      cachedProfileData = { ...profile, ...payload };
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("profile-updated", { detail: payload }));
+      }
       setSuccessMsg("Settings saved successfully!");
       setTimeout(() => setSuccessMsg(""), 3500);
     } catch (err) {

@@ -304,10 +304,31 @@ export async function createInvoice(data: {
   const targetDateStr = data.dateString || new Date().toISOString().split("T")[0];
   const invoiceDate = data.dateString ? new Date(data.dateString + "T12:00:00") : new Date();
 
-  const count = await prisma.invoice.count({
+  const yearPrefix = `INV-${invoiceDate.getFullYear()}-`;
+  const latestInvoices = await prisma.invoice.findMany({
+    where: {
+      userId: user.userId,
+      invoiceNumber: { startsWith: yearPrefix },
+    },
+    select: { invoiceNumber: true },
+    orderBy: { createdAt: "desc" },
+    take: 20,
+  });
+
+  let maxSeq = 0;
+  for (const inv of latestInvoices) {
+    const seqStr = inv.invoiceNumber.replace(yearPrefix, "").split("-")[0];
+    const seq = parseInt(seqStr, 10);
+    if (!isNaN(seq) && seq > maxSeq) {
+      maxSeq = seq;
+    }
+  }
+
+  const totalCount = await prisma.invoice.count({
     where: { userId: user.userId },
   });
-  const invoiceNumber = `INV-${invoiceDate.getFullYear()}-${String(count + 1).padStart(4, "0")}`;
+  const nextSeq = Math.max(maxSeq + 1, totalCount + 1);
+  const invoiceNumber = `${yearPrefix}${String(nextSeq).padStart(4, "0")}`;
 
   const paidAmount = Number(data.paidAmount) || 0;
   const grandTotal = Number(data.total);
@@ -317,10 +338,10 @@ export async function createInvoice(data: {
   if (dueAmount > 0 && paidAmount > 0) paymentStatus = "PARTIAL";
   else if (dueAmount > 0 && paidAmount === 0) paymentStatus = "DUE";
 
-  const invoice = await prisma.invoice.create({
+  const createPayload = (num: string) => ({
     data: {
       userId: user.userId,
-      invoiceNumber,
+      invoiceNumber: num,
       date: invoiceDate,
       dateString: targetDateStr,
       customerId: data.customerId || null,
@@ -354,7 +375,7 @@ export async function createInvoice(data: {
           paymentMethod: data.paymentMethod === "CREDIT" ? "CASH" : data.paymentMethod,
           dateString: targetDateStr,
           paymentDate: invoiceDate,
-          notes: `Initial payment for ${invoiceNumber}`,
+          notes: `Initial payment for ${num}`,
         },
       } : undefined,
     },
@@ -363,6 +384,18 @@ export async function createInvoice(data: {
       payments: true,
     },
   });
+
+  let invoice;
+  try {
+    invoice = await prisma.invoice.create(createPayload(invoiceNumber));
+  } catch (err: any) {
+    if (err?.code === "P2002") {
+      const fallbackNumber = `${yearPrefix}${String(nextSeq + 1).padStart(4, "0")}-${Date.now().toString().slice(-4)}`;
+      invoice = await prisma.invoice.create(createPayload(fallbackNumber));
+    } else {
+      throw err;
+    }
+  }
 
   // Deduct stock for products included
   for (const item of data.items) {
@@ -826,7 +859,7 @@ export async function getReports(startDate?: string, endDate?: string) {
   }
 
   const grossProfit = totalSales - cogs;
-  const netProfit = totalRevenue - totalExpenses;
+  const netProfit = grossProfit + totalOtherIncome - totalExpenses;
   const profitMarginPercent = totalRevenue > 0 ? ((netProfit / totalRevenue) * 100).toFixed(1) : "0.0";
 
   // Expense breakdown by category

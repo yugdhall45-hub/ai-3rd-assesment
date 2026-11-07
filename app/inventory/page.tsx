@@ -135,7 +135,8 @@ export default function InventoryPage() {
   // Inventory Valuation
   const totalWholesaleValue = products.reduce((s, p) => s + p.costPrice * p.stock, 0);
   const totalRetailValue = products.reduce((s, p) => s + p.sellingPrice * p.stock, 0);
-  const lowStockCount = products.filter((p) => p.stock <= 10).length;
+  const outOfStockCount = products.filter((p) => p.stock <= 0).length;
+  const lowStockCount = products.filter((p) => p.stock > 0 && p.stock <= 10).length;
 
   const categories = Array.from(new Set(products.map((p) => p.category))).filter(Boolean);
 
@@ -200,15 +201,22 @@ export default function InventoryPage() {
 
         <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-500">Low Stock Warnings</span>
-            <div className="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center">
+            <span className="text-xs font-semibold text-slate-500">Stock Alerts</span>
+            <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${outOfStockCount > 0 ? "bg-rose-50 text-rose-600" : "bg-amber-50 text-amber-600"}`}>
               <AlertTriangle className="w-4 h-4" />
             </div>
           </div>
-          <div className="mt-3 text-2xl font-extrabold text-amber-700 tracking-tight">
-            {lowStockCount} items
+          <div className="mt-3 flex items-baseline gap-2">
+            <div className={`text-2xl font-extrabold tracking-tight ${outOfStockCount > 0 ? "text-rose-700" : "text-amber-700"}`}>
+              {outOfStockCount > 0 ? `${outOfStockCount} Out` : `${lowStockCount} Low`}
+            </div>
+            {outOfStockCount > 0 && lowStockCount > 0 && (
+              <span className="text-xs text-amber-600 font-medium">({lowStockCount} low)</span>
+            )}
           </div>
-          <div className="text-xs text-slate-400 mt-1">Items with 10 units or fewer</div>
+          <div className="text-xs text-slate-400 mt-1">
+            {outOfStockCount > 0 ? "Depleted items requiring urgent re-order" : "Items with 10 units or fewer"}
+          </div>
         </div>
       </div>
 
@@ -268,7 +276,8 @@ export default function InventoryPage() {
                   const profit = prod.sellingPrice - prod.costPrice;
                   const marginPercent =
                     prod.sellingPrice > 0 ? ((profit / prod.sellingPrice) * 100).toFixed(0) : "0";
-                  const isLowStock = prod.stock <= 10;
+                  const isOutOfStock = prod.stock <= 0;
+                  const isLowStock = prod.stock > 0 && prod.stock <= 10;
 
                   return (
                     <tr key={prod.id} className="hover:bg-slate-50/80 transition">
@@ -296,14 +305,18 @@ export default function InventoryPage() {
                       </td>
                       <td className="py-3.5 px-4">
                         <div className="flex items-center gap-1.5">
-                          <span className={`font-bold ${isLowStock ? "text-amber-600" : "text-slate-800"}`}>
+                          <span className={`font-bold ${isOutOfStock ? "text-rose-600 font-extrabold" : isLowStock ? "text-amber-600" : "text-slate-800"}`}>
                             {prod.stock} {prod.unit}
                           </span>
-                          {isLowStock && (
+                          {isOutOfStock ? (
+                            <span className="bg-rose-100 text-rose-800 text-[10px] font-bold px-1.5 py-0.5 rounded">
+                              Out of Stock
+                            </span>
+                          ) : isLowStock ? (
                             <span className="bg-amber-100 text-amber-800 text-[10px] font-bold px-1.5 py-0.5 rounded">
                               Low
                             </span>
-                          )}
+                          ) : null}
                         </div>
                       </td>
                       <td className="py-3.5 px-4 text-right space-x-1">

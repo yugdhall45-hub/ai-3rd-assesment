@@ -79,6 +79,15 @@ export default function DashboardPage() {
 
   useEffect(() => {
     loadData(hasInitialLoaded);
+
+    const handleProfileUpdate = (e: any) => {
+      if (e.detail) {
+        setData((prev: any) => (prev ? { ...prev, profile: { ...prev.profile, ...e.detail } } : prev));
+        cachedDashboardData.profile = { ...cachedDashboardData.profile, ...e.detail };
+      }
+    };
+    window.addEventListener("profile-updated", handleProfileUpdate);
+    return () => window.removeEventListener("profile-updated", handleProfileUpdate);
   }, []);
 
   const profile = data.profile || { name: "SmartBazaar Local Mart", currency: "₹" };
