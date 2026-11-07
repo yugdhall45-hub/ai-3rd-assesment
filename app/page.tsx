@@ -17,8 +17,6 @@ import {
 } from "lucide-react";
 import {
   getBusinessProfile,
-  getInvoices,
-  getExpenses,
   getDaybook,
   getTotalCustomerDues,
 } from "@/lib/actions";
@@ -31,88 +29,75 @@ interface DashboardData {
   expenses: any[];
 }
 
+const defaultDashboardData: DashboardData = {
+  profile: { name: "SmartBazaar Local Mart", currency: "₹" },
+  daybookData: {
+    metrics: { totalSalesAllModes: 0, totalExpensesAllModes: 0, netDailyProfit: 0, expectedCash: 2000, totalCashIn: 0, totalCashOut: 0 },
+    register: { isClosed: false },
+  },
+  totalCustomerDues: 0,
+  invoices: [],
+  expenses: [],
+};
+
 // Module-level in-memory cache for instant 0ms transitions between Dashboard & POS
-let cachedDashboardData: DashboardData | null = null;
+let cachedDashboardData: DashboardData = defaultDashboardData;
+let hasInitialLoaded = false;
 
 export default function DashboardPage() {
-  const [data, setData] = useState<DashboardData | null>(() => cachedDashboardData);
-  const [loading, setLoading] = useState(!cachedDashboardData);
+  const [data, setData] = useState<DashboardData>(cachedDashboardData);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const loadData = async (silent = false) => {
-    if (!silent && !cachedDashboardData) {
-      setLoading(true);
-    } else {
-      setIsRefreshing(true);
-    }
+    if (silent) setIsRefreshing(true);
 
     try {
       const today = new Date().toISOString().split("T")[0];
-      const [profile, daybookData, totalCustomerDues, invoices, expenses] = await Promise.all([
+      const [profile, daybookData, totalCustomerDues] = await Promise.all([
         getBusinessProfile(),
         getDaybook(today),
         getTotalCustomerDues(),
-        getInvoices(10, today),
-        getExpenses(10, today),
       ]);
 
       const fresh: DashboardData = {
         profile,
         daybookData,
         totalCustomerDues,
-        invoices,
-        expenses,
+        invoices: daybookData.invoices || [],
+        expenses: daybookData.expenses || [],
       };
 
       cachedDashboardData = fresh;
+      hasInitialLoaded = true;
       setData(fresh);
     } catch (err) {
       console.error("Dashboard fetch error:", err);
     } finally {
-      setLoading(false);
       setIsRefreshing(false);
     }
   };
 
   useEffect(() => {
-    // Stale-while-revalidate: if cache exists, revalidate silently without screen flash
-    loadData(Boolean(cachedDashboardData));
+    loadData(hasInitialLoaded);
   }, []);
 
-  if (loading && !data) {
-    return (
-      <div className="space-y-6 max-w-7xl mx-auto opacity-70">
-        <div className="h-32 bg-slate-200/80 rounded-2xl w-full animate-pulse" />
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-          {[1, 2, 3, 4, 5].map((i) => (
-            <div key={i} className="h-28 bg-slate-100 border border-slate-200 rounded-2xl animate-pulse" />
-          ))}
-        </div>
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 h-72 bg-slate-100 rounded-2xl animate-pulse" />
-          <div className="h-72 bg-slate-100 rounded-2xl animate-pulse" />
-        </div>
-      </div>
-    );
-  }
-
-  const profile = data?.profile || { name: "SmartBazaar Local Mart", currency: "₹" };
+  const profile = data.profile || { name: "SmartBazaar Local Mart", currency: "₹" };
   const currency = profile.currency || "₹";
-  const daybookData = data?.daybookData || {
+  const daybookData = data.daybookData || {
     metrics: { totalSalesAllModes: 0, totalExpensesAllModes: 0, netDailyProfit: 0, expectedCash: 0, totalCashIn: 0, totalCashOut: 0 },
     register: { isClosed: false },
   };
-  const totalCustomerDues = data?.totalCustomerDues || 0;
-  const invoices = data?.invoices || [];
-  const expenses = data?.expenses || [];
+  const totalCustomerDues = data.totalCustomerDues || 0;
+  const invoices = data.invoices || [];
+  const expenses = data.expenses || [];
 
-  const todaySales = daybookData.metrics.totalSalesAllModes;
-  const todayExpenses = daybookData.metrics.totalExpensesAllModes;
-  const todayNetProfit = daybookData.metrics.netDailyProfit;
-  const expectedCashInDrawer = daybookData.metrics.expectedCash;
+  const todaySales = daybookData.metrics?.totalSalesAllModes || 0;
+  const todayExpenses = daybookData.metrics?.totalExpensesAllModes || 0;
+  const todayNetProfit = daybookData.metrics?.netDailyProfit || 0;
+  const expectedCashInDrawer = daybookData.metrics?.expectedCash || 0;
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto transition-opacity duration-200">
+    <div className="space-y-6 max-w-7xl mx-auto">
       {/* Header Banner */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-gradient-to-r from-slate-900 via-slate-800 to-emerald-950 p-6 rounded-2xl text-white shadow-md">
         <div>

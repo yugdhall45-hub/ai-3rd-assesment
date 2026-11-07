@@ -5,6 +5,20 @@ import { revalidatePath } from "next/cache";
 import { requireUser } from "@/lib/auth";
 import { cache } from "react";
 
+// Short-lived in-memory server cache for ultra-fast instantaneous navigation (0ms)
+interface DaybookCacheEntry {
+  key: string;
+  data: any;
+  ts: number;
+}
+let serverDaybookCache: DaybookCacheEntry | null = null;
+let serverCustomerDuesCache: { userId: string; dues: number; ts: number } | null = null;
+
+export function invalidateBusinessCache() {
+  serverDaybookCache = null;
+  serverCustomerDuesCache = null;
+}
+
 // ================= BUSINESS PROFILE =================
 // Fast memoized profile read avoiding repeated write upsert transactions
 export const getBusinessProfile = cache(async () => {
@@ -173,11 +187,20 @@ export async function createCustomer(data: {
 
 export async function getTotalCustomerDues(): Promise<number> {
   const user = await requireUser();
+  if (
+    serverCustomerDuesCache &&
+    serverCustomerDuesCache.userId === user.userId &&
+    Date.now() - serverCustomerDuesCache.ts < 20000
+  ) {
+    return serverCustomerDuesCache.dues;
+  }
   const agg = await prisma.invoice.aggregate({
     where: { userId: user.userId, dueAmount: { gt: 0 } },
     _sum: { dueAmount: true },
   });
-  return agg._sum.dueAmount || 0;
+  const dues = agg._sum.dueAmount || 0;
+  serverCustomerDuesCache = { userId: user.userId, dues, ts: Date.now() };
+  return dues;
 }
 
 export async function recordCustomerPayment(data: {
@@ -233,6 +256,7 @@ export async function recordCustomerPayment(data: {
     remainingPayment -= settle;
   }
 
+  invalidateBusinessCache();
   revalidatePath("/customers");
   revalidatePath("/daybook");
   revalidatePath("/");
@@ -354,6 +378,7 @@ export async function createInvoice(data: {
     }
   }
 
+  invalidateBusinessCache();
   revalidatePath("/billing");
   revalidatePath("/daybook");
   revalidatePath("/customers");
@@ -402,6 +427,7 @@ export async function markInvoicePaid(
     },
   });
 
+  invalidateBusinessCache();
   revalidatePath("/billing");
   revalidatePath("/daybook");
   revalidatePath("/customers");
@@ -449,6 +475,7 @@ export async function createExpense(data: {
     },
   });
 
+  invalidateBusinessCache();
   revalidatePath("/expenses");
   revalidatePath("/daybook");
   revalidatePath("/");
@@ -460,6 +487,7 @@ export async function deleteExpense(id: string) {
   await prisma.expense.delete({
     where: { id, userId: user.userId },
   });
+  invalidateBusinessCache();
   revalidatePath("/expenses");
   revalidatePath("/daybook");
   revalidatePath("/");
@@ -503,6 +531,7 @@ export async function createOtherIncome(data: {
     },
   });
 
+  invalidateBusinessCache();
   revalidatePath("/expenses");
   revalidatePath("/daybook");
   revalidatePath("/");
@@ -514,6 +543,7 @@ export async function deleteOtherIncome(id: string) {
   await prisma.otherIncome.delete({
     where: { id, userId: user.userId },
   });
+  invalidateBusinessCache();
   revalidatePath("/expenses");
   revalidatePath("/daybook");
   revalidatePath("/");
@@ -524,6 +554,15 @@ export async function deleteOtherIncome(id: string) {
 export async function getDaybook(dateString?: string) {
   const user = await requireUser();
   const targetDate = dateString || new Date().toISOString().split("T")[0];
+  const cacheKey = `${user.userId}_${targetDate}`;
+
+  if (
+    serverDaybookCache &&
+    serverDaybookCache.key === cacheKey &&
+    Date.now() - serverDaybookCache.ts < 20000
+  ) {
+    return serverDaybookCache.data;
+  }
 
   // Fetch or create daybook register entry for this user
   let register = await prisma.daybookRegister.findUnique({
@@ -641,7 +680,7 @@ export async function getDaybook(dateString?: string) {
   // Sort events chronologically (latest first)
   events.sort((a, b) => b.timestamp - a.timestamp);
 
-  return {
+  const result = {
     dateString: targetDate,
     register: register || {
       id: "temp",
@@ -671,7 +710,12 @@ export async function getDaybook(dateString?: string) {
         expenses.reduce((s, e) => s + e.amount, 0),
     },
     events,
+    invoices,
+    expenses,
   };
+
+  serverDaybookCache = { key: cacheKey, data: result, ts: Date.now() };
+  return result;
 }
 
 export async function saveDaybookRegister(data: {
@@ -719,6 +763,7 @@ export async function saveDaybookRegister(data: {
     },
   });
 
+  invalidateBusinessCache();
   revalidatePath("/daybook");
   revalidatePath("/");
   return reg;

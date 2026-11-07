@@ -102,7 +102,7 @@ export default function Sidebar({
               href={item.href}
               prefetch={true}
               onClick={onClose}
-              className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-medium transition-all ${
+              className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-medium transition-colors duration-100 ${
                 isActive
                   ? "bg-emerald-600 text-white shadow-sm shadow-emerald-600/30"
                   : "text-slate-300 hover:text-white hover:bg-slate-800/80"
