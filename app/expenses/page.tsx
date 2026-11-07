@@ -96,8 +96,8 @@ function ExpensesContent() {
 
   const currency = profile.currency || "₹";
 
-  const loadData = async () => {
-    setLoading(true);
+  const loadData = async (silent = false) => {
+    if (!silent && !cachedExpensesData) setLoading(true);
     try {
       const [exps, incs, prof] = await Promise.all([
         getExpenses(100),
@@ -107,6 +107,7 @@ function ExpensesContent() {
       setExpenses(exps);
       setIncomes(incs);
       setProfile(prof);
+      cachedExpensesData = { expenses: exps, incomes: incs, profile: prof };
     } catch (err) {
       console.error(err);
     } finally {
@@ -115,7 +116,7 @@ function ExpensesContent() {
   };
 
   useEffect(() => {
-    loadData();
+    loadData(Boolean(cachedExpensesData));
   }, []);
 
   const handleCreateExpense = async (e: React.FormEvent) => {
@@ -138,7 +139,8 @@ function ExpensesContent() {
       setAmount("");
       setReference("");
       setNotes("");
-      await loadData();
+      cachedExpensesData = null; // invalidate cache
+      await loadData(true);
     } catch (err) {
       alert("Error logging expense");
     }
@@ -162,7 +164,8 @@ function ExpensesContent() {
       setTitle("");
       setAmount("");
       setNotes("");
-      await loadData();
+      cachedExpensesData = null; // invalidate cache
+      await loadData(true);
     } catch (err) {
       alert("Error logging income");
     }
@@ -170,14 +173,24 @@ function ExpensesContent() {
 
   const handleDeleteExpense = async (id: string) => {
     if (!confirm("Are you sure you want to delete this expense entry?")) return;
-    await deleteExpense(id);
-    await loadData();
+    try {
+      await deleteExpense(id);
+      cachedExpensesData = null; // invalidate cache
+      await loadData(true);
+    } catch (err) {
+      alert("Error deleting expense. Please try again.");
+    }
   };
 
   const handleDeleteIncome = async (id: string) => {
     if (!confirm("Are you sure you want to delete this income entry?")) return;
-    await deleteOtherIncome(id);
-    await loadData();
+    try {
+      await deleteOtherIncome(id);
+      cachedExpensesData = null; // invalidate cache
+      await loadData(true);
+    } catch (err) {
+      alert("Error deleting income. Please try again.");
+    }
   };
 
   // Calculations

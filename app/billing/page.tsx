@@ -215,6 +215,7 @@ export default function BillingPage() {
     setPaymentMethod("CASH");
     setPaidAmount("");
     setNotes("");
+    setInvoiceDate(new Date().toISOString().split("T")[0]);
   };
 
   const handleCustomerSelect = (id: string) => {
@@ -241,6 +242,12 @@ export default function BillingPage() {
         address: newCustAddress.trim() || undefined,
       });
       setCustomers((prev) => [...prev, created]);
+      if (cachedBillingData) {
+        cachedBillingData.customers = [...(cachedBillingData.customers || []), created];
+      }
+      // Also invalidate the customers page cache so it shows the new customer
+      // (accessed via dynamic import at runtime — set via global flag)
+      (globalThis as any).__invalidateCustomersCache?.();
       setSelectedCustomerId(created.id);
       setCustomerName(created.name);
       setCustomerPhone(created.phone || "");
@@ -317,7 +324,7 @@ export default function BillingPage() {
       await markInvoicePaid(collectModalInv.id, amount, collectMethod, collectDate);
       setCollectModalInv(null);
       setCollectAmount("");
-      await loadData();
+      await loadData(true);
     } catch (err) {
       alert("Error updating payment");
     }

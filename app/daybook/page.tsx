@@ -44,6 +44,7 @@ export default function DaybookPage() {
     () => initialCache?.dayData?.register?.notes || ""
   );
   const [saving, setSaving] = useState(false);
+  const [saveMsg, setSaveMsg] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   const currency = profile.currency || "₹";
 
@@ -89,6 +90,7 @@ export default function DaybookPage() {
 
   const handleSaveRegister = async (closeDay = false) => {
     setSaving(true);
+    setSaveMsg(null);
     try {
       const actual = actualCashInput !== "" ? parseFloat(actualCashInput) : undefined;
       await saveDaybookRegister({
@@ -98,10 +100,15 @@ export default function DaybookPage() {
         notes: notesInput,
         isClosed: closeDay ? true : dayData?.register?.isClosed || false,
       });
-      await fetchDay(selectedDate);
-      alert(closeDay ? "Day successfully reconciled and locked!" : "Daybook saved successfully.");
+      delete cachedDaybookMap[selectedDate]; // invalidate cache for this date
+      await fetchDay(selectedDate, true);
+      setSaveMsg({
+        type: "success",
+        text: closeDay ? "Day successfully reconciled and locked!" : "Daybook saved successfully.",
+      });
+      setTimeout(() => setSaveMsg(null), 4000);
     } catch (err) {
-      alert("Error saving daybook register");
+      setSaveMsg({ type: "error", text: "Error saving daybook register. Please try again." });
     } finally {
       setSaving(false);
     }
@@ -372,6 +379,24 @@ export default function DaybookPage() {
                   <span>Lock & Close Day</span>
                 </button>
               </div>
+
+              {/* Inline save message — replaces browser alert() */}
+              {saveMsg && (
+                <div
+                  className={`mt-2 px-3 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 ${
+                    saveMsg.type === "success"
+                      ? "bg-emerald-50 text-emerald-800 border border-emerald-200"
+                      : "bg-rose-50 text-rose-800 border border-rose-200"
+                  }`}
+                >
+                  {saveMsg.type === "success" ? (
+                    <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
+                  ) : (
+                    <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
+                  )}
+                  {saveMsg.text}
+                </div>
+              )}
             </div>
 
             {/* Chronological Daily Activity Stream (7 cols) */}

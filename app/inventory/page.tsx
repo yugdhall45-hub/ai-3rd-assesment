@@ -116,7 +116,8 @@ export default function InventoryPage() {
         });
       }
       setShowModal(false);
-      await loadData();
+      cachedInventoryData = null; // invalidate cache
+      await loadData(true);
     } catch (err) {
       alert("Error saving item");
     }
@@ -126,7 +127,8 @@ export default function InventoryPage() {
     if (!confirm("Are you sure you want to delete this product?")) return;
     try {
       await deleteProduct(id);
-      await loadData();
+      cachedInventoryData = null; // invalidate cache
+      await loadData(true);
     } catch (err) {
       alert("Error deleting product");
     }

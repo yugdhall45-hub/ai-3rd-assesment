@@ -84,7 +84,8 @@ export default function CustomersPage() {
       setAddress("");
       setNotes("");
       setShowAddModal(false);
-      await loadData();
+      cachedCustomersData = null; // invalidate cache so fresh data loads
+      await loadData(true);
     } catch (err) {
       alert("Error adding customer");
     }
@@ -107,7 +108,8 @@ export default function CustomersPage() {
       setActivePaymentCustomer(null);
       setPayAmount("");
       setPayNotes("");
-      await loadData();
+      cachedCustomersData = null; // invalidate cache
+      await loadData(true);
     } catch (err) {
       alert("Error recording payment");
     }
