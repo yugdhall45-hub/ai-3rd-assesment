@@ -84,24 +84,24 @@ export default function TransactionsPage() {
   const netCashFlow = totalIn - totalOut;
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto">
+    <div className="space-y-4 sm:space-y-6 max-w-7xl mx-auto">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h2 className="text-2xl font-black tracking-tight text-slate-900 flex items-center gap-2.5">
-            <History className="w-7 h-7 text-emerald-600" />
-            <span>Unified Transactions & Audit Log (Hisaab & Audit)</span>
+          <h2 className="text-xl sm:text-2xl font-black tracking-tight text-slate-900 flex items-center gap-2">
+            <History className="w-6 h-6 text-emerald-600" />
+            <span>Unified Transactions & Audit Log</span>
           </h2>
-          <p className="text-xs sm:text-sm text-slate-500 font-medium mt-1">
+          <p className="text-xs text-slate-500 font-medium mt-0.5">
             Real-time feed of all cash inflows, outflows, supplier settlements, and immutable system audit logs.
           </p>
         </div>
 
         {/* Tab Switcher */}
-        <div className="flex items-center p-1 bg-slate-200 rounded-xl">
+        <div className="flex items-center p-1 bg-slate-200 rounded-xl w-full sm:w-auto">
           <button
             onClick={() => setActiveTab("TRANSACTIONS")}
-            className={`px-4 py-2 rounded-lg text-xs font-black transition cursor-pointer ${
+            className={`flex-1 sm:flex-none px-4 py-2 rounded-lg text-xs font-black transition cursor-pointer text-center ${
               activeTab === "TRANSACTIONS"
                 ? "bg-slate-900 text-white shadow-xs"
                 : "text-slate-700 hover:text-slate-950"
@@ -111,7 +111,7 @@ export default function TransactionsPage() {
           </button>
           <button
             onClick={() => setActiveTab("AUDIT")}
-            className={`px-4 py-2 rounded-lg text-xs font-black transition cursor-pointer flex items-center gap-1.5 ${
+            className={`flex-1 sm:flex-none px-4 py-2 rounded-lg text-xs font-black transition cursor-pointer flex items-center justify-center gap-1.5 ${
               activeTab === "AUDIT"
                 ? "bg-slate-900 text-white shadow-xs"
                 : "text-slate-700 hover:text-slate-950"
@@ -123,72 +123,72 @@ export default function TransactionsPage() {
         </div>
       </div>
 
-      {/* KPI Cards (Only for Transactions Tab) */}
+      {/* KPI Cards (Only for Transactions Tab, 2 cols on mobile) */}
       {activeTab === "TRANSACTIONS" && (
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="bg-white p-5 rounded-2xl border-2 border-emerald-200 shadow-xs">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 sm:gap-4">
+          <div className="bg-white p-3.5 sm:p-5 rounded-2xl border-2 border-emerald-200 shadow-xs">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-black text-emerald-800 uppercase tracking-wide">
-                Total Money In (Aawak)
+              <span className="text-[11px] sm:text-xs font-black text-emerald-800 uppercase">
+                Money In (Aawak)
               </span>
-              <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
-                <ArrowDownRight className="w-4 h-4" />
+              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
+                <ArrowDownRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               </div>
             </div>
-            <div className="mt-3 text-2xl sm:text-3xl font-black text-emerald-700 tracking-tight">
+            <div className="mt-2 text-xl sm:text-3xl font-black text-emerald-700 tracking-tight">
               +₹{totalIn.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
             </div>
-            <div className="text-xs text-emerald-800/80 mt-1 font-semibold">
-              Sales & debtor collections
+            <div className="text-[10px] sm:text-xs text-emerald-800/80 mt-0.5 font-semibold">
+              Sales & collections
             </div>
           </div>
 
-          <div className="bg-white p-5 rounded-2xl border-2 border-rose-200 shadow-xs">
+          <div className="bg-white p-3.5 sm:p-5 rounded-2xl border-2 border-rose-200 shadow-xs">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-black text-rose-800 uppercase tracking-wide">
-                Total Money Out (Jawak)
+              <span className="text-[11px] sm:text-xs font-black text-rose-800 uppercase">
+                Money Out (Jawak)
               </span>
-              <div className="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center font-bold">
-                <ArrowUpRight className="w-4 h-4" />
+              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center font-bold">
+                <ArrowUpRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               </div>
             </div>
-            <div className="mt-3 text-2xl sm:text-3xl font-black text-rose-600 tracking-tight">
+            <div className="mt-2 text-xl sm:text-3xl font-black text-rose-600 tracking-tight">
               −₹{totalOut.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
             </div>
-            <div className="text-xs text-rose-700 mt-1 font-semibold">
-              Expenses & supplier settlements
+            <div className="text-[10px] sm:text-xs text-rose-700 mt-0.5 font-semibold">
+              Expenses & supplier bills
             </div>
           </div>
 
-          <div className="bg-gradient-to-br from-slate-900 to-slate-800 text-white p-5 rounded-2xl shadow-md">
+          <div className="col-span-2 sm:col-span-1 bg-gradient-to-br from-slate-900 to-slate-800 text-white p-3.5 sm:p-5 rounded-2xl shadow-md">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-black text-emerald-400 uppercase tracking-wide">
-                Net Cash Flow (Shuddh Bachat)
+              <span className="text-[11px] sm:text-xs font-black text-emerald-400 uppercase">
+                Net Cash Flow
               </span>
-              <div className="w-8 h-8 rounded-lg bg-slate-800 text-emerald-400 flex items-center justify-center font-bold border border-slate-700">
-                <ShieldCheck className="w-4 h-4" />
+              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-slate-800 text-emerald-400 flex items-center justify-center font-bold border border-slate-700">
+                <ShieldCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               </div>
             </div>
             <div
-              className={`mt-3 text-2xl sm:text-3xl font-black tracking-tight ${
+              className={`mt-2 text-xl sm:text-3xl font-black tracking-tight ${
                 netCashFlow >= 0 ? "text-emerald-400" : "text-amber-400"
               }`}
             >
               ₹{netCashFlow.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
             </div>
-            <div className="text-xs text-slate-400 mt-1">
-              Money Inflow − Money Outflow
+            <div className="text-[10px] sm:text-xs text-slate-400 mt-0.5">
+              Net daily balance
             </div>
           </div>
         </div>
       )}
 
       {/* Main Content Area */}
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+      <div className="bg-white rounded-2xl border-2 border-slate-200 shadow-xs overflow-hidden">
         {/* Filters Bar */}
-        <div className="p-4 border-b border-slate-100 flex flex-col md:flex-row items-center justify-between gap-3 bg-slate-50/50">
+        <div className="p-3 sm:p-4 border-b border-slate-100 flex flex-col md:flex-row items-center justify-between gap-2.5 bg-slate-50/50">
           <div className="relative w-full md:w-80">
-            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
               type="text"
               placeholder={
@@ -198,12 +198,12 @@ export default function TransactionsPage() {
               }
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-xs sm:text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              className="w-full pl-9 pr-3 py-2 bg-white border border-slate-200 rounded-xl text-xs sm:text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500"
             />
           </div>
 
           {activeTab === "TRANSACTIONS" && (
-            <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
+            <div className="grid grid-cols-2 sm:flex sm:items-center gap-2 w-full md:w-auto">
               <select
                 value={typeFilter}
                 onChange={(e) => setTypeFilter(e.target.value)}
@@ -232,7 +232,7 @@ export default function TransactionsPage() {
           )}
         </div>
 
-        {/* Tab 1: Money Movements Table */}
+        {/* Tab 1: Money Movements */}
         {activeTab === "TRANSACTIONS" && (
           <div>
             {loading ? (
@@ -248,77 +248,140 @@ export default function TransactionsPage() {
                 </p>
               </div>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs sm:text-sm">
-                  <thead className="bg-slate-900 text-slate-200 text-[11px] font-black uppercase tracking-wider">
-                    <tr>
-                      <th className="py-3 px-4">Txn # / Date</th>
-                      <th className="py-3 px-4">Type / Category</th>
-                      <th className="py-3 px-4">Party / Description</th>
-                      <th className="py-3 px-4">Payment Mode</th>
-                      <th className="py-3 px-4 text-right">Amount</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {filteredTransactions.map((txn) => (
-                      <tr key={txn.id} className="hover:bg-slate-50/80 transition font-medium">
-                        <td className="py-3.5 px-4">
-                          <div className="font-bold text-slate-900 font-mono">{txn.txnNumber}</div>
-                          <div className="text-[11px] text-slate-400 flex items-center gap-1 mt-0.5">
-                            <Calendar className="w-3 h-3" />
-                            <span>{txn.dateString}</span>
-                          </div>
-                        </td>
-                        <td className="py-3.5 px-4">
-                          <div className="flex items-center gap-1.5">
-                            {txn.type === "MONEY_IN" ? (
-                              <span className="w-5 h-5 rounded-md bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-[10px]">
-                                ↓
-                              </span>
-                            ) : txn.type === "MONEY_OUT" ? (
-                              <span className="w-5 h-5 rounded-md bg-rose-100 text-rose-700 flex items-center justify-center font-bold text-[10px]">
-                                ↑
-                              </span>
-                            ) : (
-                              <span className="w-5 h-5 rounded-md bg-amber-100 text-amber-700 flex items-center justify-center font-bold text-[10px]">
-                                ⇄
-                              </span>
-                            )}
-                            <span className="font-bold text-slate-800 text-xs">
-                              {txn.category.replace("_", " ")}
-                            </span>
-                          </div>
-                        </td>
-                        <td className="py-3.5 px-4 text-slate-700">
-                          <div className="font-bold text-slate-900">{txn.partyName || "Store Counter"}</div>
-                          <div className="text-[11px] text-slate-400 truncate max-w-sm">
-                            {txn.description || "—"}
-                          </div>
-                        </td>
-                        <td className="py-3.5 px-4">
-                          <span className="px-2 py-0.5 rounded bg-slate-100 text-slate-700 text-[11px] font-bold">
-                            {txn.paymentMode}
-                          </span>
-                        </td>
-                        <td className="py-3.5 px-4 text-right font-black text-sm sm:text-base">
-                          <span
-                            className={
+              <>
+                {/* MOBILE CARD VIEW */}
+                <div className="block sm:hidden divide-y divide-slate-100">
+                  {filteredTransactions.map((txn) => (
+                    <div key={txn.id} className="p-3.5 space-y-2">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex items-start gap-2.5">
+                          <div
+                            className={`w-7 h-7 rounded-lg flex items-center justify-center font-black text-xs shrink-0 mt-0.5 ${
                               txn.type === "MONEY_IN"
-                                ? "text-emerald-600"
+                                ? "bg-emerald-100 text-emerald-800"
                                 : txn.type === "MONEY_OUT"
-                                ? "text-rose-600"
-                                : "text-amber-600"
-                            }
+                                ? "bg-rose-100 text-rose-800"
+                                : "bg-amber-100 text-amber-800"
+                            }`}
+                          >
+                            {txn.type === "MONEY_IN" ? "↓" : txn.type === "MONEY_OUT" ? "↑" : "⇄"}
+                          </div>
+                          <div>
+                            <div className="font-bold text-slate-900 text-xs">
+                              {txn.partyName || "Store Counter"}
+                            </div>
+                            <div className="flex items-center gap-1.5 mt-0.5">
+                              <span className="text-[10px] font-bold uppercase px-1.5 py-0.5 rounded bg-slate-100 text-slate-600">
+                                {txn.category.replace("_", " ")}
+                              </span>
+                              <span className="text-[10px] text-slate-400 font-mono">
+                                {txn.dateString}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="text-right">
+                          <div
+                            className={`font-black text-sm sm:text-base ${
+                              txn.type === "MONEY_IN"
+                                ? "text-emerald-700"
+                                : txn.type === "MONEY_OUT"
+                                ? "text-rose-700"
+                                : "text-amber-700"
+                            }`}
                           >
                             {txn.type === "MONEY_IN" ? "+" : txn.type === "MONEY_OUT" ? "−" : ""}
                             ₹{txn.amount.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
+                          </div>
+                          <span className="text-[10px] text-slate-400 uppercase font-semibold">
+                            {txn.paymentMode}
                           </span>
-                        </td>
+                        </div>
+                      </div>
+
+                      {txn.description && (
+                        <div className="text-[11px] text-slate-500 pl-9 truncate">
+                          {txn.description}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+
+                {/* DESKTOP TABLE VIEW */}
+                <div className="hidden sm:block overflow-x-auto">
+                  <table className="w-full text-left text-xs sm:text-sm">
+                    <thead className="bg-slate-900 text-slate-200 text-[11px] font-black uppercase tracking-wider">
+                      <tr>
+                        <th className="py-3 px-4">Txn # / Date</th>
+                        <th className="py-3 px-4">Type / Category</th>
+                        <th className="py-3 px-4">Party / Description</th>
+                        <th className="py-3 px-4">Payment Mode</th>
+                        <th className="py-3 px-4 text-right">Amount</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {filteredTransactions.map((txn) => (
+                        <tr key={txn.id} className="hover:bg-slate-50/80 transition font-medium">
+                          <td className="py-3.5 px-4">
+                            <div className="font-bold text-slate-900 font-mono">{txn.txnNumber}</div>
+                            <div className="text-[11px] text-slate-400 flex items-center gap-1 mt-0.5">
+                              <Calendar className="w-3 h-3" />
+                              <span>{txn.dateString}</span>
+                            </div>
+                          </td>
+                          <td className="py-3.5 px-4">
+                            <div className="flex items-center gap-1.5">
+                              {txn.type === "MONEY_IN" ? (
+                                <span className="w-5 h-5 rounded-md bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-[10px]">
+                                  ↓
+                                </span>
+                              ) : txn.type === "MONEY_OUT" ? (
+                                <span className="w-5 h-5 rounded-md bg-rose-100 text-rose-700 flex items-center justify-center font-bold text-[10px]">
+                                  ↑
+                                </span>
+                              ) : (
+                                <span className="w-5 h-5 rounded-md bg-amber-100 text-amber-700 flex items-center justify-center font-bold text-[10px]">
+                                  ⇄
+                                </span>
+                              )}
+                              <span className="font-bold text-slate-800 text-xs">
+                                {txn.category.replace("_", " ")}
+                              </span>
+                            </div>
+                          </td>
+                          <td className="py-3.5 px-4 text-slate-700">
+                            <div className="font-bold text-slate-900">{txn.partyName || "Store Counter"}</div>
+                            <div className="text-[11px] text-slate-400 truncate max-w-sm">
+                              {txn.description || "—"}
+                            </div>
+                          </td>
+                          <td className="py-3.5 px-4">
+                            <span className="px-2 py-0.5 rounded bg-slate-100 text-slate-700 text-[11px] font-bold">
+                              {txn.paymentMode}
+                            </span>
+                          </td>
+                          <td className="py-3.5 px-4 text-right font-black text-sm sm:text-base">
+                            <span
+                              className={
+                                txn.type === "MONEY_IN"
+                                  ? "text-emerald-600"
+                                  : txn.type === "MONEY_OUT"
+                                  ? "text-rose-600"
+                                  : "text-amber-600"
+                              }
+                            >
+                              {txn.type === "MONEY_IN" ? "+" : txn.type === "MONEY_OUT" ? "−" : ""}
+                              ₹{txn.amount.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </>
             )}
           </div>
         )}
@@ -339,53 +402,89 @@ export default function TransactionsPage() {
                 </p>
               </div>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs sm:text-sm">
-                  <thead className="bg-slate-900 text-slate-200 text-[11px] font-black uppercase tracking-wider">
-                    <tr>
-                      <th className="py-3 px-4">Timestamp</th>
-                      <th className="py-3 px-4">Action</th>
-                      <th className="py-3 px-4">Entity</th>
-                      <th className="py-3 px-4">Audit Details</th>
-                      <th className="py-3 px-4">User</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {filteredAuditLogs.map((log) => (
-                      <tr key={log.id} className="hover:bg-slate-50/80 transition font-medium">
-                        <td className="py-3 px-4 text-slate-500 font-mono text-[11px] whitespace-nowrap">
-                          {new Date(log.createdAt).toLocaleString("en-IN")}
-                        </td>
-                        <td className="py-3 px-4">
-                          <span
-                            className={`px-2 py-0.5 rounded text-[10px] font-black uppercase ${
-                              log.action === "CREATE"
-                                ? "bg-emerald-100 text-emerald-800"
-                                : log.action === "SETTLE"
-                                ? "bg-teal-100 text-teal-800"
-                                : log.action === "DELETE"
-                                ? "bg-rose-100 text-rose-800"
-                                : "bg-slate-100 text-slate-800"
-                            }`}
-                          >
-                            {log.action}
-                          </span>
-                        </td>
-                        <td className="py-3 px-4">
-                          <span className="font-bold text-slate-900 text-xs">{log.entityType}</span>
-                        </td>
-                        <td className="py-3 px-4 text-slate-700 font-mono text-xs">
-                          {log.details}
-                        </td>
-                        <td className="py-3 px-4 text-slate-500 flex items-center gap-1">
-                          <User className="w-3.5 h-3.5 text-slate-400" />
-                          <span>{log.performedBy}</span>
-                        </td>
+              <>
+                {/* MOBILE CARD VIEW */}
+                <div className="block sm:hidden divide-y divide-slate-100">
+                  {filteredAuditLogs.map((log) => (
+                    <div key={log.id} className="p-3.5 space-y-1.5">
+                      <div className="flex items-center justify-between">
+                        <span
+                          className={`px-2 py-0.5 rounded text-[10px] font-black uppercase ${
+                            log.action === "CREATE"
+                              ? "bg-emerald-100 text-emerald-800"
+                              : log.action === "SETTLE"
+                              ? "bg-teal-100 text-teal-800"
+                              : log.action === "DELETE"
+                              ? "bg-rose-100 text-rose-800"
+                              : "bg-slate-100 text-slate-800"
+                          }`}
+                        >
+                          {log.action} • {log.entityType}
+                        </span>
+                        <span className="text-[10px] text-slate-400 font-mono">
+                          {new Date(log.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                        </span>
+                      </div>
+                      <div className="text-xs font-mono text-slate-800 leading-snug">
+                        {log.details}
+                      </div>
+                      <div className="text-[10px] text-slate-400 flex items-center gap-1">
+                        <User className="w-3 h-3" />
+                        <span>{log.performedBy}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* DESKTOP TABLE VIEW */}
+                <div className="hidden sm:block overflow-x-auto">
+                  <table className="w-full text-left text-xs sm:text-sm">
+                    <thead className="bg-slate-900 text-slate-200 text-[11px] font-black uppercase tracking-wider">
+                      <tr>
+                        <th className="py-3 px-4">Timestamp</th>
+                        <th className="py-3 px-4">Action</th>
+                        <th className="py-3 px-4">Entity</th>
+                        <th className="py-3 px-4">Audit Details</th>
+                        <th className="py-3 px-4">User</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {filteredAuditLogs.map((log) => (
+                        <tr key={log.id} className="hover:bg-slate-50/80 transition font-medium">
+                          <td className="py-3 px-4 text-slate-500 font-mono text-[11px] whitespace-nowrap">
+                            {new Date(log.createdAt).toLocaleString("en-IN")}
+                          </td>
+                          <td className="py-3 px-4">
+                            <span
+                              className={`px-2 py-0.5 rounded text-[10px] font-black uppercase ${
+                                log.action === "CREATE"
+                                  ? "bg-emerald-100 text-emerald-800"
+                                  : log.action === "SETTLE"
+                                  ? "bg-teal-100 text-teal-800"
+                                  : log.action === "DELETE"
+                                  ? "bg-rose-100 text-rose-800"
+                                  : "bg-slate-100 text-slate-800"
+                              }`}
+                            >
+                              {log.action}
+                            </span>
+                          </td>
+                          <td className="py-3 px-4">
+                            <span className="font-bold text-slate-900 text-xs">{log.entityType}</span>
+                          </td>
+                          <td className="py-3 px-4 text-slate-700 font-mono text-xs">
+                            {log.details}
+                          </td>
+                          <td className="py-3 px-4 text-slate-500 flex items-center gap-1">
+                            <User className="w-3.5 h-3.5 text-slate-400" />
+                            <span>{log.performedBy}</span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </>
             )}
           </div>
         )}
@@ -393,4 +492,3 @@ export default function TransactionsPage() {
     </div>
   );
 }
-

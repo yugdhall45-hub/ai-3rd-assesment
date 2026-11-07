@@ -13,6 +13,7 @@ import {
   X,
   Receipt,
   DollarSign,
+  MessageCircle,
 } from "lucide-react";
 import {
   getCustomers,
@@ -21,7 +22,6 @@ import {
   getBusinessProfile,
 } from "@/lib/actions";
 
-// Module-level in-memory cache for instant 0ms tab switching
 let cachedCustomersData: { customers: any[]; profile: any } | null = null;
 
 export default function CustomersPage() {
@@ -84,7 +84,7 @@ export default function CustomersPage() {
       setAddress("");
       setNotes("");
       setShowAddModal(false);
-      cachedCustomersData = null; // invalidate cache so fresh data loads
+      cachedCustomersData = null;
       await loadData(true);
     } catch (err) {
       alert("Error adding customer");
@@ -108,7 +108,7 @@ export default function CustomersPage() {
       setActivePaymentCustomer(null);
       setPayAmount("");
       setPayNotes("");
-      cachedCustomersData = null; // invalidate cache
+      cachedCustomersData = null;
       await loadData(true);
     } catch (err) {
       alert("Error recording payment");
@@ -127,109 +127,193 @@ export default function CustomersPage() {
   });
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto">
+    <div className="space-y-4 sm:space-y-6 max-w-7xl mx-auto">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
+          <h2 className="text-xl sm:text-2xl font-black tracking-tight text-slate-900 flex items-center gap-2">
             <Users className="w-6 h-6 text-emerald-600" />
-            <span>Customers & Khata (Udhar) Ledger</span>
+            <span>Grahak Khata Book (Debtors)</span>
           </h2>
-          <p className="text-slate-500 text-xs">
-            Manage customer credit accounts, track pending debts, and record repayments.
+          <p className="text-slate-500 text-xs mt-0.5">
+            Customer credit accounts, outstanding dues, and instant payment vasooli.
           </p>
         </div>
 
         <button
           onClick={() => setShowAddModal(true)}
-          className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs px-4 py-2.5 rounded-xl shadow-xs transition"
+          className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs sm:text-sm px-4 py-2.5 sm:py-3 rounded-xl shadow-md transition active:scale-95 cursor-pointer"
         >
-          <Plus className="w-3.5 h-3.5" />
-          <span>Add New Customer</span>
+          <Plus className="w-4 h-4 stroke-[2.5]" />
+          <span>+ Naya Grahak Jodein</span>
         </button>
       </div>
 
-      {/* KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
+      {/* KPI Cards (2 cols on mobile, 3 on tablet/desktop) */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 sm:gap-4">
+        <div className="bg-white p-3.5 sm:p-5 rounded-2xl border-2 border-amber-200 shadow-xs">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-500">Total Khata Outstanding</span>
-            <div className="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center">
-              <CreditCard className="w-4 h-4" />
+            <span className="text-[11px] sm:text-xs font-black text-amber-800 uppercase">
+              Total Udhar Baaki
+            </span>
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center">
+              <CreditCard className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </div>
           </div>
-          <div className="mt-3 text-2xl font-extrabold text-amber-700 tracking-tight">
+          <div className="mt-2 text-xl sm:text-3xl font-black text-amber-700 tracking-tight">
             {currency}{totalOutstanding.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
           </div>
-          <div className="text-xs text-slate-400 mt-1">Pending payments to collect</div>
+          <div className="text-[10px] sm:text-xs text-amber-800/80 mt-0.5 font-semibold">
+            Grahako se lena baaki hai
+          </div>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
+        <div className="bg-white p-3.5 sm:p-5 rounded-2xl border-2 border-slate-200 shadow-xs">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-500">Customers with Dues</span>
-            <div className="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center">
-              <AlertCircle className="w-4 h-4" />
+            <span className="text-[11px] sm:text-xs font-black text-slate-700 uppercase">
+              Udhar Wale Grahak
+            </span>
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center">
+              <AlertCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </div>
           </div>
-          <div className="mt-3 text-2xl font-extrabold text-slate-900 tracking-tight">
-            {customersWithDues.length}
+          <div className="mt-2 text-xl sm:text-3xl font-black text-slate-900 tracking-tight">
+            {customersWithDues.length} grahak
           </div>
-          <div className="text-xs text-slate-400 mt-1">Customers owing credit balances</div>
+          <div className="text-[10px] sm:text-xs text-slate-400 mt-0.5">
+            With pending khata
+          </div>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
+        <div className="col-span-2 sm:col-span-1 bg-white p-3.5 sm:p-5 rounded-2xl border-2 border-slate-200 shadow-xs">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-500">Total Registered</span>
-            <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
-              <Users className="w-4 h-4" />
+            <span className="text-[11px] sm:text-xs font-black text-slate-700 uppercase">
+              Total Customers
+            </span>
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-teal-50 text-teal-600 flex items-center justify-center">
+              <CheckCircle2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </div>
           </div>
-          <div className="mt-3 text-2xl font-extrabold text-slate-900 tracking-tight">
-            {customers.length}
+          <div className="mt-2 text-xl sm:text-3xl font-black text-slate-900 tracking-tight">
+            {customers.length} grahak
           </div>
-          <div className="text-xs text-slate-400 mt-1">In store customer book</div>
+          <div className="text-[10px] sm:text-xs text-teal-700 mt-0.5 font-semibold">
+            {customers.length - customersWithDues.length} All Clear
+          </div>
         </div>
       </div>
 
-      {/* Directory & Ledger Table */}
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
-        {/* Search & Filter Toolbar */}
-        <div className="p-4 border-b border-slate-100 flex flex-wrap items-center justify-between gap-3 bg-slate-50/50">
-          <div className="relative w-full sm:w-72">
-            <Search className="w-4 h-4 absolute left-3 top-2.5 text-slate-400" />
+      {/* Main Customers List */}
+      <div className="bg-white rounded-2xl border-2 border-slate-200 shadow-xs overflow-hidden">
+        {/* Filters & Search */}
+        <div className="p-3 sm:p-4 border-b border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-2.5 bg-slate-50/50">
+          <div className="relative w-full sm:w-80">
+            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
               type="text"
-              placeholder="Search by name or phone..."
+              placeholder="Grahak ka naam ya phone..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-9 pr-3 py-1.5 bg-white border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+              className="w-full pl-9 pr-3 py-2 bg-white border border-slate-200 rounded-xl text-xs sm:text-sm font-semibold focus:ring-2 focus:ring-emerald-500 focus:outline-none"
             />
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 w-full sm:w-auto">
             <button
               onClick={() => setFilterDueOnly(false)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
+              className={`flex-1 sm:flex-none px-3 py-1.5 rounded-xl text-xs font-bold transition ${
                 !filterDueOnly ? "bg-slate-900 text-white" : "bg-white text-slate-600 border border-slate-200"
               }`}
             >
-              All Customers ({customers.length})
+              All ({customers.length})
             </button>
             <button
               onClick={() => setFilterDueOnly(true)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
-                filterDueOnly ? "bg-amber-600 text-white" : "bg-white text-slate-600 border border-slate-200"
+              className={`flex-1 sm:flex-none px-3 py-1.5 rounded-xl text-xs font-bold transition ${
+                filterDueOnly ? "bg-amber-600 text-white shadow-xs" : "bg-white text-slate-600 border border-slate-200"
               }`}
             >
-              Only With Dues ({customersWithDues.length})
+              Pending Udhar ({customersWithDues.length})
             </button>
           </div>
         </div>
 
-        {/* Customer Table */}
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
-            <thead className="bg-slate-50 text-slate-600 border-b border-slate-100">
+        {/* MOBILE CARD VIEW (Phone users: Touch-friendly cards) */}
+        <div className="block sm:hidden divide-y divide-slate-100">
+          {filtered.length === 0 ? (
+            <div className="text-center py-12 text-slate-400 text-xs">
+              No customers found matching search.
+            </div>
+          ) : (
+            filtered.map((cust) => {
+              const hasDue = (cust.totalDues || 0) > 0;
+              return (
+                <div key={cust.id} className="p-3.5 space-y-2.5">
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <div className="font-black text-slate-900 text-sm">{cust.name}</div>
+                      {cust.phone && (
+                        <div className="flex items-center gap-2 mt-0.5">
+                          <a
+                            href={`tel:${cust.phone}`}
+                            className="text-[11px] text-emerald-700 font-bold flex items-center gap-1 hover:underline"
+                          >
+                            <Phone className="w-3 h-3" />
+                            <span>{cust.phone}</span>
+                          </a>
+                          <a
+                            href={`https://wa.me/91${cust.phone.replace(/[^0-9]/g, "")}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-[10px] text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded font-bold flex items-center gap-1"
+                          >
+                            <MessageCircle className="w-3 h-3 text-emerald-600" /> WhatsApp
+                          </a>
+                        </div>
+                      )}
+                      {cust.address && (
+                        <div className="text-[11px] text-slate-400 flex items-center gap-1 mt-0.5">
+                          <MapPin className="w-3 h-3" />
+                          <span>{cust.address}</span>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="text-right shrink-0">
+                      <div className={`font-black text-base ${hasDue ? "text-amber-700" : "text-emerald-700"}`}>
+                        {currency}{(cust.totalDues || 0).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
+                      </div>
+                      <div className="text-[10px] text-slate-400">
+                        {hasDue ? "Udhar Baaki" : "All Clear"}
+                      </div>
+                    </div>
+                  </div>
+
+                  {hasDue && (
+                    <div className="pt-1 flex items-center justify-end gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setActivePaymentCustomer(cust);
+                          setPayAmount(String(cust.totalDues));
+                        }}
+                        className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs py-2 rounded-xl shadow-xs transition active:scale-95 flex items-center justify-center gap-1.5"
+                      >
+                        <DollarSign className="w-4 h-4" />
+                        <span>Vasooli Karein (Collect ₹{cust.totalDues})</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
+              );
+            })
+          )}
+        </div>
+
+        {/* DESKTOP TABLE VIEW (Tablets and Desktops) */}
+        <div className="hidden sm:block overflow-x-auto">
+          <table className="w-full text-left text-xs sm:text-sm">
+            <thead className="bg-slate-900 text-slate-200 text-[11px] font-black uppercase tracking-wider">
               <tr>
                 <th className="py-3 px-4 font-semibold">Customer Name</th>
                 <th className="py-3 px-4 font-semibold">Contact & Address</th>
@@ -272,17 +356,17 @@ export default function CustomersPage() {
                       </td>
                       <td className="py-3.5 px-4">
                         {hasDue ? (
-                          <span className="inline-flex items-center gap-1 bg-amber-50 text-amber-800 font-semibold px-2.5 py-1 rounded-full text-[11px]">
+                          <span className="inline-flex items-center gap-1 bg-amber-50 text-amber-800 font-bold px-2.5 py-1 rounded-full text-[11px]">
                             <AlertCircle className="w-3 h-3 text-amber-600" /> Pending Khata
                           </span>
                         ) : (
-                          <span className="inline-flex items-center gap-1 bg-emerald-50 text-emerald-800 font-semibold px-2.5 py-1 rounded-full text-[11px]">
+                          <span className="inline-flex items-center gap-1 bg-emerald-50 text-emerald-800 font-bold px-2.5 py-1 rounded-full text-[11px]">
                             <CheckCircle2 className="w-3 h-3 text-emerald-600" /> All Clear
                           </span>
                         )}
                       </td>
                       <td className="py-3.5 px-4">
-                        <div className={`font-bold text-sm ${hasDue ? "text-amber-700" : "text-slate-400"}`}>
+                        <div className={`font-black text-sm sm:text-base ${hasDue ? "text-amber-700" : "text-slate-400"}`}>
                           {currency}{(cust.totalDues || 0).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
                         </div>
                       </td>
@@ -294,13 +378,13 @@ export default function CustomersPage() {
                               setActivePaymentCustomer(cust);
                               setPayAmount(String(cust.totalDues));
                             }}
-                            className="inline-flex items-center gap-1 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-lg text-xs shadow-xs transition"
+                            className="inline-flex items-center gap-1 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-black rounded-xl text-xs shadow-xs transition active:scale-95 cursor-pointer"
                           >
                             <DollarSign className="w-3.5 h-3.5" />
-                            <span>Record Payment</span>
+                            <span>Vasooli Karein</span>
                           </button>
                         ) : (
-                          <span className="text-slate-400 text-xs">No dues</span>
+                          <span className="text-slate-400 text-xs font-semibold">No dues</span>
                         )}
                       </td>
                     </tr>
@@ -312,20 +396,20 @@ export default function CustomersPage() {
         </div>
       </div>
 
-      {/* MODAL: Add Customer */}
+      {/* MODAL: Add Customer (Bottom Sheet on Mobile) */}
       {showAddModal && (
-        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 z-50">
-          <div className="bg-white rounded-2xl max-w-md w-full p-5 sm:p-6 shadow-xl max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4 z-50">
+          <div className="bg-white rounded-t-3xl sm:rounded-2xl max-w-md w-full p-5 sm:p-6 shadow-2xl max-h-[85vh] overflow-y-auto animate-in slide-in-from-bottom duration-200">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <h3 className="font-bold text-slate-900 text-base">Register New Customer</h3>
-              <button onClick={() => setShowAddModal(false)} className="text-slate-400 hover:text-slate-600">
-                <X className="w-4 h-4" />
+              <h3 className="font-bold text-slate-900 text-base">Naya Grahak Khata Kholein</h3>
+              <button onClick={() => setShowAddModal(false)} className="p-1 rounded-lg text-slate-400 hover:text-slate-600">
+                <X className="w-5 h-5" />
               </button>
             </div>
 
             <form onSubmit={handleCreateCustomer} className="mt-4 space-y-3">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                <label className="block text-xs font-bold text-slate-700 mb-1">
                   Customer Name *
                 </label>
                 <input
@@ -333,61 +417,61 @@ export default function CustomersPage() {
                   required
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder="e.g. Anand Sharma"
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                  placeholder="e.g. Ramesh Sharma"
+                  className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  Phone Number
+                <label className="block text-xs font-bold text-slate-700 mb-1">
+                  Mobile Phone Number
                 </label>
                 <input
-                  type="text"
+                  type="tel"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
-                  placeholder="e.g. 9811223344"
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                  placeholder="e.g. 98765 43210"
+                  className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  Address
+                <label className="block text-xs font-bold text-slate-700 mb-1">
+                  Address / Gali / Mohalla
                 </label>
                 <input
                   type="text"
                   value={address}
                   onChange={(e) => setAddress(e.target.value)}
-                  placeholder="e.g. Shop 2, Main Street"
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                  placeholder="e.g. House #14, Near Temple"
+                  className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  Remarks / Notes
+                <label className="block text-xs font-bold text-slate-700 mb-1">
+                  Notes
                 </label>
-                <textarea
-                  rows={2}
+                <input
+                  type="text"
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
-                  placeholder="e.g. Monthly credit limit ₹5,000"
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                  placeholder="Optional details"
+                  className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                 />
               </div>
 
-              <div className="pt-2 flex gap-2">
+              <div className="pt-3 flex gap-2">
                 <button
                   type="button"
                   onClick={() => setShowAddModal(false)}
-                  className="flex-1 py-2 bg-slate-100 text-slate-700 font-semibold text-xs rounded-xl"
+                  className="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs rounded-xl"
+                  className="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs sm:text-sm rounded-xl transition shadow-md active:scale-95"
                 >
                   Save Customer
                 </button>
@@ -397,26 +481,34 @@ export default function CustomersPage() {
         </div>
       )}
 
-      {/* MODAL: Record Customer Debt Repayment */}
+      {/* MODAL: Record Khata Repayment */}
       {activePaymentCustomer && (
-        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 z-50">
-          <div className="bg-white rounded-2xl max-w-sm w-full p-5 sm:p-6 shadow-xl max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4 z-50">
+          <div className="bg-white rounded-t-3xl sm:rounded-2xl max-w-md w-full p-5 sm:p-6 shadow-2xl animate-in slide-in-from-bottom duration-200">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <h3 className="font-bold text-slate-900 text-base">Record Khata Payment</h3>
-              <button onClick={() => setActivePaymentCustomer(null)} className="text-slate-400 hover:text-slate-600">
-                <X className="w-4 h-4" />
+              <div>
+                <h3 className="font-bold text-slate-900 text-base">Grahak Udhar Vasooli</h3>
+                <p className="text-xs text-slate-500 font-medium">{activePaymentCustomer.name}</p>
+              </div>
+              <button
+                onClick={() => setActivePaymentCustomer(null)}
+                className="p-1 rounded-lg text-slate-400 hover:text-slate-600"
+              >
+                <X className="w-5 h-5" />
               </button>
             </div>
 
-            <form onSubmit={handleRecordPayment} className="mt-4 space-y-3">
-              <div className="bg-slate-50 p-3 rounded-xl text-xs space-y-1">
-                <div>Customer: <strong>{activePaymentCustomer.name}</strong></div>
-                <div>Current Khata Debt: <strong className="text-amber-700">{currency}{activePaymentCustomer.totalDues}</strong></div>
+            <form onSubmit={handleRecordPayment} className="mt-4 space-y-3.5">
+              <div className="p-3 bg-amber-50 rounded-xl border border-amber-200 flex items-center justify-between">
+                <span className="text-xs font-bold text-amber-900">Kul Udhar Baaki:</span>
+                <span className="text-base font-black text-amber-800">
+                  {currency}{(activePaymentCustomer.totalDues || 0).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
+                </span>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  Repayment Amount ({currency}) *
+                <label className="block text-xs font-bold text-slate-700 mb-1">
+                  Vasooli Amount (₹) *
                 </label>
                 <input
                   type="number"
@@ -424,84 +516,69 @@ export default function CustomersPage() {
                   required
                   value={payAmount}
                   onChange={(e) => setPayAmount(e.target.value)}
-                  className="w-full px-3 py-2 bg-slate-50 border-2 border-slate-200 rounded-xl text-base font-black text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                  className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-lg font-black focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                 />
-                {/* Quick Khata Tender Presets */}
-                <div className="flex items-center gap-1.5 mt-2 flex-wrap">
+
+                {/* Quick Presets */}
+                <div className="flex flex-wrap gap-1.5 mt-2">
                   <button
                     type="button"
-                    onClick={() => setPayAmount(String(activePaymentCustomer.totalDues || 0))}
-                    className="px-2.5 py-1 bg-emerald-100 hover:bg-emerald-200 text-emerald-900 rounded-lg text-xs font-extrabold active:scale-95 transition"
+                    onClick={() => setPayAmount(String(activePaymentCustomer.totalDues))}
+                    className="px-2.5 py-1 bg-amber-100 hover:bg-amber-200 text-amber-900 text-xs font-bold rounded-lg"
                   >
-                    Full Balance ({currency}{activePaymentCustomer.totalDues})
+                    Poora Udhar: {currency}{activePaymentCustomer.totalDues}
                   </button>
-                  {[500, 1000, 2000, 5000].map((preset) => (
+                  {[100, 200, 500, 1000].map((amt) => (
                     <button
-                      key={preset}
+                      key={amt}
                       type="button"
-                      onClick={() => setPayAmount(String(preset))}
-                      className="px-2 py-1 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-lg text-xs font-bold active:scale-95 transition"
+                      onClick={() => setPayAmount(String(amt))}
+                      className="px-2 py-1 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold rounded-lg"
                     >
-                      {currency}{preset}
+                      {currency}{amt}
                     </button>
                   ))}
                 </div>
               </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  Payment Date
-                </label>
-                <input
-                  type="date"
-                  value={payDate}
-                  onChange={(e) => setPayDate(e.target.value)}
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-                />
-              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">Payment Mode</label>
+                  <select
+                    value={payMethod}
+                    onChange={(e) => setPayMethod(e.target.value)}
+                    className="w-full px-2.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold"
+                  >
+                    <option value="CASH">Cash (Galla)</option>
+                    <option value="UPI">UPI / QR</option>
+                    <option value="BANK_TRANSFER">Bank Transfer</option>
+                  </select>
+                </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  Payment Mode
-                </label>
-                <select
-                  value={payMethod}
-                  onChange={(e) => setPayMethod(e.target.value)}
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-                >
-                  <option value="CASH">Cash (Adds to Drawer)</option>
-                  <option value="UPI">UPI / GooglePay / PhonePe</option>
-                  <option value="CARD">Card</option>
-                  <option value="BANK">Bank Transfer / Cheque</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  Notes
-                </label>
-                <input
-                  type="text"
-                  value={payNotes}
-                  onChange={(e) => setPayNotes(e.target.value)}
-                  placeholder="e.g. Cleared October grocery bill"
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-                />
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">Date</label>
+                  <input
+                    type="date"
+                    value={payDate}
+                    onChange={(e) => setPayDate(e.target.value)}
+                    className="w-full px-2.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold"
+                  />
+                </div>
               </div>
 
               <div className="pt-2 flex gap-2">
                 <button
                   type="button"
                   onClick={() => setActivePaymentCustomer(null)}
-                  className="flex-1 py-2 bg-slate-100 text-slate-700 font-semibold text-xs rounded-xl"
+                  className="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs rounded-xl"
+                  className="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs sm:text-sm rounded-xl transition shadow-md active:scale-95"
                 >
-                  Confirm Receipt
+                  Vasooli Save Karein
                 </button>
               </div>
             </form>
@@ -511,4 +588,3 @@ export default function CustomersPage() {
     </div>
   );
 }
-

@@ -790,14 +790,14 @@ export default function BillingPage() {
             </div>
           </div>
 
-          {/* Mobile Sticky Quick-Checkout Bar */}
+          {/* Mobile Sticky Quick-Checkout Bar - floats above mobile bottom nav */}
           {cart.length > 0 && (
-            <div className="lg:hidden fixed bottom-3 left-3 right-3 z-40 bg-slate-900/95 backdrop-blur-md text-white p-3 rounded-2xl shadow-2xl border border-slate-700/80 flex items-center justify-between animate-in slide-in-from-bottom duration-200">
+            <div className="lg:hidden fixed bottom-[calc(4.5rem+env(safe-area-inset-bottom))] left-3 right-3 z-30 bg-slate-900 text-white p-3 rounded-2xl shadow-2xl border-2 border-emerald-500/50 flex items-center justify-between animate-in slide-in-from-bottom duration-200">
               <div className="min-w-0 pr-2">
-                <div className="text-[11px] text-slate-300 font-medium truncate">
+                <div className="text-[11px] text-slate-300 font-bold truncate">
                   {cart.reduce((s, i) => s + i.quantity, 0)} items in bill
                 </div>
-                <div className="text-sm font-extrabold text-emerald-400">
+                <div className="text-base font-black text-emerald-400">
                   {currency}{grandTotal.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
                 </div>
               </div>
@@ -808,17 +808,17 @@ export default function BillingPage() {
                     const checkoutEl = document.getElementById("checkout-section");
                     checkoutEl?.scrollIntoView({ behavior: "smooth" });
                   }}
-                  className="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-xs font-semibold rounded-xl text-slate-200 border border-slate-700"
+                  className="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-xs font-bold rounded-xl text-slate-200 border border-slate-700 active:scale-95 transition"
                 >
                   Pay Bill ↓
                 </button>
                 <button
                   type="button"
                   onClick={() => handleSaveInvoice("save")}
-                  className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-xs font-bold rounded-xl text-white shadow-md flex items-center gap-1"
+                  className="px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-xs font-black rounded-xl text-slate-950 shadow-md flex items-center gap-1 active:scale-95 transition"
                 >
-                  <Check className="w-3.5 h-3.5" />
-                  <span>Save</span>
+                  <Check className="w-4 h-4 stroke-[2.5]" />
+                  <span>Save Bill</span>
                 </button>
               </div>
             </div>
@@ -832,7 +832,89 @@ export default function BillingPage() {
             <span className="text-xs text-slate-500">Showing last 50 transactions</span>
           </div>
 
-          <div className="overflow-x-auto">
+          {/* MOBILE CARD VIEW FOR BILLS HISTORY */}
+          <div className="block sm:hidden divide-y divide-slate-100">
+            {invoices.map((inv) => (
+              <div key={inv.id} className="p-3.5 space-y-2">
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <div className="font-mono font-bold text-slate-900 text-sm">
+                      {inv.invoiceNumber}
+                    </div>
+                    <div className="font-semibold text-slate-800 text-xs mt-0.5">
+                      {inv.customerName}
+                    </div>
+                    <div className="text-[11px] text-slate-400 flex items-center gap-2 mt-0.5">
+                      <span>{inv.items.length} items</span>
+                      <span>•</span>
+                      <span className="uppercase font-semibold">{inv.paymentMethod}</span>
+                    </div>
+                  </div>
+
+                  <div className="text-right">
+                    <div className="font-black text-slate-900 text-base">
+                      {currency}{inv.total.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
+                    </div>
+                    <div className="mt-1">
+                      {inv.paymentStatus === "PAID" && (
+                        <span className="bg-emerald-50 text-emerald-700 font-bold px-2 py-0.5 rounded-full text-[10px]">
+                          Paid
+                        </span>
+                      )}
+                      {inv.paymentStatus === "PARTIAL" && (
+                        <span className="bg-amber-50 text-amber-700 font-bold px-2 py-0.5 rounded-full text-[10px]">
+                          Due: {currency}{inv.dueAmount}
+                        </span>
+                      )}
+                      {inv.paymentStatus === "DUE" && (
+                        <span className="bg-rose-50 text-rose-700 font-bold px-2 py-0.5 rounded-full text-[10px]">
+                          Unpaid
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="pt-2 border-t border-slate-100 flex items-center justify-end gap-1.5">
+                  {inv.dueAmount > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setCollectModalInv(inv);
+                        setCollectAmount(String(inv.dueAmount));
+                      }}
+                      className="px-2.5 py-1.5 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-lg text-xs"
+                    >
+                      Collect Due
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCurrentInvoiceForPrint(inv);
+                      setPrintMode("thermal");
+                    }}
+                    className="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold rounded-lg text-xs"
+                  >
+                    Receipt
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCurrentInvoiceForPrint(inv);
+                      setPrintMode("a4");
+                    }}
+                    className="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold rounded-lg text-xs"
+                  >
+                    A4
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* DESKTOP TABLE VIEW */}
+          <div className="hidden sm:block overflow-x-auto">
             <table className="w-full text-left text-xs">
               <thead className="bg-slate-50 text-slate-600 border-b border-slate-100">
                 <tr>

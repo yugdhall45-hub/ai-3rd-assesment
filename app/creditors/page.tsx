@@ -150,96 +150,96 @@ export default function CreditorsPage() {
   const suppliersWithDues = suppliers.filter((s) => (s.currentBalance || 0) > 0);
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto">
+    <div className="space-y-4 sm:space-y-6 max-w-7xl mx-auto">
       {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h2 className="text-2xl font-black tracking-tight text-slate-900 flex items-center gap-2.5">
-            <Building2 className="w-7 h-7 text-emerald-600" />
+          <h2 className="text-xl sm:text-2xl font-black tracking-tight text-slate-900 flex items-center gap-2">
+            <Building2 className="w-6 h-6 text-emerald-600" />
             <span>Creditors & Suppliers Ledger</span>
           </h2>
-          <p className="text-xs sm:text-sm text-slate-500 font-medium mt-1">
+          <p className="text-xs text-slate-500 font-medium mt-0.5">
             Suppliers and vendors to whom the business owes payments (Lendari / Udhar Hisaab).
           </p>
         </div>
 
         <button
           onClick={() => setShowAddModal(true)}
-          className="inline-flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs sm:text-sm px-5 py-3 rounded-xl shadow-md transition active:scale-95 cursor-pointer"
+          className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs sm:text-sm px-4 py-2.5 sm:py-3 rounded-xl shadow-md transition active:scale-95 cursor-pointer"
         >
           <Plus className="w-4 h-4 stroke-[2.5]" />
           <span>+ Add New Creditor</span>
         </button>
       </div>
 
-      {/* KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-white p-5 rounded-2xl border-2 border-rose-200 shadow-xs">
+      {/* KPI Cards (2 cols on mobile, 3 on tablet/desktop) */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 sm:gap-4">
+        <div className="bg-white p-3.5 sm:p-5 rounded-2xl border-2 border-rose-200 shadow-xs">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-black text-rose-800 uppercase tracking-wide">
-              Total Payable (Market Udhar)
+            <span className="text-[11px] sm:text-xs font-black text-rose-800 uppercase">
+              Total Payable (Lendari)
             </span>
-            <div className="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center font-bold">
-              <TrendingDown className="w-4 h-4" />
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center font-bold">
+              <TrendingDown className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </div>
           </div>
-          <div className="mt-3 text-2xl sm:text-3xl font-black text-rose-700 tracking-tight">
+          <div className="mt-2 text-xl sm:text-3xl font-black text-rose-700 tracking-tight">
             ₹{totalPayable.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
           </div>
-          <div className="text-xs text-rose-800/80 mt-1 font-semibold">
+          <div className="text-[10px] sm:text-xs text-rose-800/80 mt-0.5 font-semibold">
             Suppliers to be paid
           </div>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border-2 border-slate-200 shadow-xs">
+        <div className="bg-white p-3.5 sm:p-5 rounded-2xl border-2 border-slate-200 shadow-xs">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-black text-slate-700 uppercase tracking-wide">
+            <span className="text-[11px] sm:text-xs font-black text-slate-700 uppercase">
               Active Creditors
             </span>
-            <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
-              <Users className="w-4 h-4" />
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
+              <Users className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </div>
           </div>
-          <div className="mt-3 text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
+          <div className="mt-2 text-xl sm:text-3xl font-black text-slate-900 tracking-tight">
             {suppliers.length} Parties
           </div>
-          <div className="text-xs text-slate-500 mt-1 font-medium">
+          <div className="text-[10px] sm:text-xs text-slate-500 mt-0.5">
             {suppliersWithDues.length} with pending balances
           </div>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border-2 border-slate-200 shadow-xs">
+        <div className="col-span-2 sm:col-span-1 bg-white p-3.5 sm:p-5 rounded-2xl border-2 border-slate-200 shadow-xs">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-black text-slate-700 uppercase tracking-wide">
-              Settlement Status
+            <span className="text-[11px] sm:text-xs font-black text-slate-700 uppercase">
+              Settled Status
             </span>
-            <div className="w-8 h-8 rounded-lg bg-teal-50 text-teal-600 flex items-center justify-center font-bold">
-              <CheckCircle className="w-4 h-4" />
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-teal-50 text-teal-600 flex items-center justify-center font-bold">
+              <CheckCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </div>
           </div>
-          <div className="mt-3 text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
+          <div className="mt-2 text-xl sm:text-3xl font-black text-slate-900 tracking-tight">
             {suppliers.length - suppliersWithDues.length} Settled
           </div>
-          <div className="text-xs text-teal-700 mt-1 font-semibold">
+          <div className="text-[10px] sm:text-xs text-teal-700 mt-0.5 font-semibold">
             Zero pending debt
           </div>
         </div>
       </div>
 
-      {/* Search and Table */}
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
-        <div className="p-4 border-b border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3 bg-slate-50/50">
+      {/* Search and Table / Card List */}
+      <div className="bg-white rounded-2xl border-2 border-slate-200 shadow-xs overflow-hidden">
+        <div className="p-3 sm:p-4 border-b border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-2.5 bg-slate-50/50">
           <div className="relative w-full sm:w-80">
-            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
               type="text"
-              placeholder="Search by name, phone, code..."
+              placeholder="Search creditor name, phone, code..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-xs sm:text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              className="w-full pl-9 pr-3 py-2 bg-white border border-slate-200 rounded-xl text-xs sm:text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500"
             />
           </div>
-          <span className="text-xs text-slate-500 font-semibold">
+          <span className="text-xs text-slate-500 font-bold self-start sm:self-auto">
             Showing {filteredSuppliers.length} of {suppliers.length} Creditors
           </span>
         </div>
@@ -255,62 +255,42 @@ export default function CreditorsPage() {
             <p className="text-xs text-slate-400 max-w-sm mx-auto">
               Add your suppliers, wholesale dealers, and distributors to keep track of purchase bills and payments.
             </p>
-            <button
-              onClick={() => setShowAddModal(true)}
-              className="mt-2 inline-flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs px-4 py-2 rounded-xl transition"
-            >
-              <Plus className="w-4 h-4" />
-              <span>Add First Creditor</span>
-            </button>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs sm:text-sm">
-              <thead className="bg-slate-900 text-slate-200 text-[11px] font-black uppercase tracking-wider">
-                <tr>
-                  <th className="py-3 px-4">Code / Party Name</th>
-                  <th className="py-3 px-4">Business / Phone</th>
-                  <th className="py-3 px-4">Terms</th>
-                  <th className="py-3 px-4 text-right">Balance Due</th>
-                  <th className="py-3 px-4 text-center">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {filteredSuppliers.map((supplier) => (
-                  <tr key={supplier.id} className="hover:bg-slate-50/80 transition font-medium">
-                    <td className="py-3.5 px-4">
-                      <div className="font-bold text-slate-900 flex items-center gap-2">
+          <>
+            {/* MOBILE CARD VIEW */}
+            <div className="block sm:hidden divide-y divide-slate-100">
+              {filteredSuppliers.map((supplier) => (
+                <div key={supplier.id} className="p-3.5 space-y-2.5">
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <div className="font-black text-slate-900 text-sm flex items-center gap-1.5">
                         <span>{supplier.name}</span>
                         {supplier.creditorCode && (
-                          <span className="px-1.5 py-0.5 rounded text-[10px] font-mono bg-slate-100 text-slate-600">
+                          <span className="px-1 py-0.5 rounded text-[9px] font-mono bg-slate-100 text-slate-600">
                             {supplier.creditorCode}
                           </span>
                         )}
                       </div>
-                      {supplier.address && (
-                        <div className="text-[11px] text-slate-400 truncate max-w-xs flex items-center gap-1 mt-0.5">
-                          <MapPin className="w-3 h-3 text-slate-400" />
-                          <span>{supplier.address}</span>
+                      {supplier.businessName && (
+                        <div className="text-xs text-slate-600 font-semibold mt-0.5">
+                          {supplier.businessName}
                         </div>
                       )}
-                    </td>
-                    <td className="py-3.5 px-4 text-slate-600">
-                      <div className="font-semibold">{supplier.businessName || "—"}</div>
                       {supplier.phone && (
-                        <div className="text-[11px] text-slate-400 flex items-center gap-1">
+                        <a
+                          href={`tel:${supplier.phone}`}
+                          className="text-[11px] text-emerald-700 font-bold flex items-center gap-1 mt-0.5"
+                        >
                           <Phone className="w-3 h-3" />
                           <span>{supplier.phone}</span>
-                        </div>
+                        </a>
                       )}
-                    </td>
-                    <td className="py-3.5 px-4 text-slate-600">
-                      <span className="px-2 py-1 rounded-md bg-slate-100 text-slate-700 text-[11px] font-bold">
-                        {supplier.paymentTerms || "Net 30"}
-                      </span>
-                    </td>
-                    <td className="py-3.5 px-4 text-right">
+                    </div>
+
+                    <div className="text-right shrink-0">
                       <div
-                        className={`font-black text-sm sm:text-base ${
+                        className={`font-black text-base ${
                           supplier.currentBalance > 0 ? "text-rose-600" : "text-emerald-600"
                         }`}
                       >
@@ -319,56 +299,141 @@ export default function CreditorsPage() {
                       <div className="text-[10px] text-slate-400">
                         {supplier.currentBalance > 0 ? "Pending Payment" : "All Clear"}
                       </div>
-                    </td>
-                    <td className="py-3.5 px-4 text-center">
-                      <div className="inline-flex items-center gap-1.5">
-                        {supplier.currentBalance > 0 && (
-                          <button
-                            onClick={() => {
-                              setSelectedSupplier(supplier);
-                              setPayAmount(String(supplier.currentBalance));
-                              setShowPayModal(true);
-                            }}
-                            className="bg-rose-500 hover:bg-rose-600 text-white font-black text-xs px-3 py-1.5 rounded-lg shadow-xs transition active:scale-95 cursor-pointer"
-                          >
-                            Pay Due
-                          </button>
-                        )}
-                        <button
-                          onClick={() => openLedger(supplier)}
-                          className="bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs px-2.5 py-1.5 rounded-lg transition"
-                          title="View Ledger Statement"
-                        >
-                          <History className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    </td>
+                    </div>
+                  </div>
+
+                  <div className="pt-1 flex items-center gap-2">
+                    {supplier.currentBalance > 0 && (
+                      <button
+                        onClick={() => {
+                          setSelectedSupplier(supplier);
+                          setPayAmount(String(supplier.currentBalance));
+                          setShowPayModal(true);
+                        }}
+                        className="flex-1 bg-rose-600 hover:bg-rose-500 text-white font-black text-xs py-2 rounded-xl shadow-xs transition active:scale-95"
+                      >
+                        Pay Due (₹{supplier.currentBalance})
+                      </button>
+                    )}
+                    <button
+                      onClick={() => openLedger(supplier)}
+                      className="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs rounded-xl flex items-center justify-center gap-1"
+                    >
+                      <History className="w-3.5 h-3.5" />
+                      <span>Ledger</span>
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* DESKTOP TABLE VIEW */}
+            <div className="hidden sm:block overflow-x-auto">
+              <table className="w-full text-left text-xs sm:text-sm">
+                <thead className="bg-slate-900 text-slate-200 text-[11px] font-black uppercase tracking-wider">
+                  <tr>
+                    <th className="py-3 px-4">Code / Party Name</th>
+                    <th className="py-3 px-4">Business / Phone</th>
+                    <th className="py-3 px-4">Terms</th>
+                    <th className="py-3 px-4 text-right">Balance Due</th>
+                    <th className="py-3 px-4 text-center">Actions</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {filteredSuppliers.map((supplier) => (
+                    <tr key={supplier.id} className="hover:bg-slate-50/80 transition font-medium">
+                      <td className="py-3.5 px-4">
+                        <div className="font-bold text-slate-900 flex items-center gap-2">
+                          <span>{supplier.name}</span>
+                          {supplier.creditorCode && (
+                            <span className="px-1.5 py-0.5 rounded text-[10px] font-mono bg-slate-100 text-slate-600">
+                              {supplier.creditorCode}
+                            </span>
+                          )}
+                        </div>
+                        {supplier.address && (
+                          <div className="text-[11px] text-slate-400 truncate max-w-xs flex items-center gap-1 mt-0.5">
+                            <MapPin className="w-3 h-3 text-slate-400" />
+                            <span>{supplier.address}</span>
+                          </div>
+                        )}
+                      </td>
+                      <td className="py-3.5 px-4 text-slate-600">
+                        <div className="font-semibold">{supplier.businessName || "—"}</div>
+                        {supplier.phone && (
+                          <div className="text-[11px] text-slate-400 flex items-center gap-1">
+                            <Phone className="w-3 h-3" />
+                            <span>{supplier.phone}</span>
+                          </div>
+                        )}
+                      </td>
+                      <td className="py-3.5 px-4 text-slate-600">
+                        <span className="px-2 py-1 rounded-md bg-slate-100 text-slate-700 text-[11px] font-bold">
+                          {supplier.paymentTerms || "Net 30"}
+                        </span>
+                      </td>
+                      <td className="py-3.5 px-4 text-right">
+                        <div
+                          className={`font-black text-sm sm:text-base ${
+                            supplier.currentBalance > 0 ? "text-rose-600" : "text-emerald-600"
+                          }`}
+                        >
+                          ₹{supplier.currentBalance.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
+                        </div>
+                        <div className="text-[10px] text-slate-400">
+                          {supplier.currentBalance > 0 ? "Pending Payment" : "All Clear"}
+                        </div>
+                      </td>
+                      <td className="py-3.5 px-4 text-center">
+                        <div className="inline-flex items-center gap-1.5">
+                          {supplier.currentBalance > 0 && (
+                            <button
+                              onClick={() => {
+                                setSelectedSupplier(supplier);
+                                setPayAmount(String(supplier.currentBalance));
+                                setShowPayModal(true);
+                              }}
+                              className="bg-rose-500 hover:bg-rose-600 text-white font-black text-xs px-3 py-1.5 rounded-lg shadow-xs transition active:scale-95 cursor-pointer"
+                            >
+                              Pay Due
+                            </button>
+                          )}
+                          <button
+                            onClick={() => openLedger(supplier)}
+                            className="bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs px-2.5 py-1.5 rounded-lg transition"
+                            title="View Ledger Statement"
+                          >
+                            <History className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
       </div>
 
-      {/* Add Creditor Modal */}
+      {/* Add Creditor Modal (Bottom Sheet on Mobile) */}
       {showAddModal && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden border border-slate-200 animate-in fade-in zoom-in-95 duration-150">
-            <div className="p-5 bg-slate-900 text-white flex items-center justify-between">
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4">
+          <div className="bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden border border-slate-200 animate-in slide-in-from-bottom duration-200">
+            <div className="p-4 sm:p-5 bg-slate-900 text-white flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Building2 className="w-5 h-5 text-emerald-400" />
                 <h3 className="font-bold text-base">Add New Creditor / Supplier</h3>
               </div>
               <button
                 onClick={() => setShowAddModal(false)}
-                className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition"
+                className="p-1 rounded-lg text-slate-400 hover:text-white"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <form onSubmit={handleCreateSupplier} className="p-5 space-y-4 max-h-[80vh] overflow-y-auto">
+            <form onSubmit={handleCreateSupplier} className="p-4 sm:p-5 space-y-3.5 max-h-[80vh] overflow-y-auto">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="space-y-1 sm:col-span-2">
                   <label className="text-xs font-bold text-slate-700">Party / Supplier Name *</label>
@@ -378,7 +443,7 @@ export default function CreditorsPage() {
                     placeholder="e.g. Ramesh Trading Co."
                     value={newName}
                     onChange={(e) => setNewName(e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs sm:text-sm font-semibold focus:ring-2 focus:ring-emerald-500"
+                    className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-2 focus:ring-emerald-500"
                   />
                 </div>
 
@@ -389,7 +454,7 @@ export default function CreditorsPage() {
                     placeholder="e.g. Wholesale Agency"
                     value={newBusinessName}
                     onChange={(e) => setNewBusinessName(e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs sm:text-sm font-semibold focus:ring-2 focus:ring-emerald-500"
+                    className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-2 focus:ring-emerald-500"
                   />
                 </div>
 
@@ -400,7 +465,7 @@ export default function CreditorsPage() {
                     placeholder="+91 98765 43210"
                     value={newPhone}
                     onChange={(e) => setNewPhone(e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs sm:text-sm font-semibold focus:ring-2 focus:ring-emerald-500"
+                    className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-2 focus:ring-emerald-500"
                   />
                 </div>
 
@@ -412,9 +477,8 @@ export default function CreditorsPage() {
                     placeholder="0"
                     value={newOpeningBalance}
                     onChange={(e) => setNewOpeningBalance(e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs sm:text-sm font-semibold focus:ring-2 focus:ring-emerald-500"
+                    className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-2 focus:ring-emerald-500"
                   />
-                  <span className="text-[10px] text-slate-400">Past pending amount you owe this supplier</span>
                 </div>
 
                 <div className="space-y-1">
@@ -422,13 +486,12 @@ export default function CreditorsPage() {
                   <select
                     value={newPaymentTerms}
                     onChange={(e) => setNewPaymentTerms(e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs sm:text-sm font-semibold focus:ring-2 focus:ring-emerald-500"
+                    className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-xs sm:text-sm font-semibold focus:ring-2 focus:ring-emerald-500"
                   >
                     <option value="Immediate">Immediate / Cash</option>
                     <option value="Net 7">Net 7 Days</option>
                     <option value="Net 15">Net 15 Days</option>
                     <option value="Net 30">Net 30 Days</option>
-                    <option value="Net 60">Net 60 Days</option>
                   </select>
                 </div>
 
@@ -439,18 +502,7 @@ export default function CreditorsPage() {
                     placeholder="Shop #, Market, City"
                     value={newAddress}
                     onChange={(e) => setNewAddress(e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs sm:text-sm font-semibold focus:ring-2 focus:ring-emerald-500"
-                  />
-                </div>
-
-                <div className="space-y-1 sm:col-span-2">
-                  <label className="text-xs font-bold text-slate-700">Notes / Remarks</label>
-                  <input
-                    type="text"
-                    placeholder="GSTIN, bank details, contact person..."
-                    value={newNotes}
-                    onChange={(e) => setNewNotes(e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs sm:text-sm font-semibold focus:ring-2 focus:ring-emerald-500"
+                    className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-2 focus:ring-emerald-500"
                   />
                 </div>
               </div>
@@ -459,14 +511,14 @@ export default function CreditorsPage() {
                 <button
                   type="button"
                   onClick={() => setShowAddModal(false)}
-                  className="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition"
+                  className="px-4 py-2.5 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="px-5 py-2.5 rounded-xl text-xs font-black bg-emerald-600 hover:bg-emerald-500 text-white shadow-md transition active:scale-95 cursor-pointer disabled:opacity-50"
+                  className="px-5 py-2.5 rounded-xl text-xs sm:text-sm font-black bg-emerald-600 hover:bg-emerald-500 text-white shadow-md transition active:scale-95 cursor-pointer disabled:opacity-50"
                 >
                   {submitting ? "Saving..." : "Save Creditor"}
                 </button>
@@ -476,26 +528,26 @@ export default function CreditorsPage() {
         </div>
       )}
 
-      {/* Record Payment Modal */}
+      {/* Record Payment Modal (Bottom Sheet on Mobile) */}
       {showPayModal && selectedSupplier && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden border border-slate-200 animate-in fade-in zoom-in-95 duration-150">
-            <div className="p-5 bg-rose-600 text-white flex items-center justify-between">
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4">
+          <div className="bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl max-w-md w-full overflow-hidden border border-slate-200 animate-in slide-in-from-bottom duration-200">
+            <div className="p-4 sm:p-5 bg-rose-600 text-white flex items-center justify-between">
               <div>
-                <h3 className="font-bold text-base">Pay Creditor</h3>
+                <h3 className="font-bold text-base">Pay Creditor Due</h3>
                 <p className="text-xs text-rose-100">{selectedSupplier.name}</p>
               </div>
               <button
                 onClick={() => setShowPayModal(false)}
-                className="p-1 rounded-lg text-rose-200 hover:text-white hover:bg-rose-700 transition"
+                className="p-1 rounded-lg text-rose-200 hover:text-white"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <form onSubmit={handlePaySupplier} className="p-5 space-y-4">
+            <form onSubmit={handlePaySupplier} className="p-4 sm:p-5 space-y-3.5">
               <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 flex items-center justify-between">
-                <span className="text-xs font-bold text-rose-800">Total Outstanding Due:</span>
+                <span className="text-xs font-bold text-rose-800">Total Outstanding:</span>
                 <span className="text-base font-black text-rose-700">
                   ₹{selectedSupplier.currentBalance.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
                 </span>
@@ -509,24 +561,24 @@ export default function CreditorsPage() {
                   required
                   value={payAmount}
                   onChange={(e) => setPayAmount(e.target.value)}
-                  className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-base font-black focus:ring-2 focus:ring-rose-500"
+                  className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-lg font-black focus:ring-2 focus:ring-rose-500"
                 />
 
-                {/* Quick amount presets */}
+                {/* Quick presets */}
                 <div className="flex flex-wrap gap-1.5 pt-1">
                   <button
                     type="button"
                     onClick={() => setPayAmount(String(selectedSupplier.currentBalance))}
-                    className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-800 text-[11px] font-bold rounded-lg"
+                    className="px-2.5 py-1 bg-rose-100 hover:bg-rose-200 text-rose-900 text-xs font-bold rounded-lg"
                   >
-                    Full: ₹{selectedSupplier.currentBalance}
+                    Full Due: ₹{selectedSupplier.currentBalance}
                   </button>
                   {[500, 1000, 2000, 5000].map((amt) => (
                     <button
                       key={amt}
                       type="button"
                       onClick={() => setPayAmount(String(amt))}
-                      className="px-2 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-semibold rounded-lg"
+                      className="px-2 py-1 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-semibold rounded-lg"
                     >
                       ₹{amt}
                     </button>
@@ -534,18 +586,17 @@ export default function CreditorsPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-2">
                 <div className="space-y-1">
                   <label className="text-xs font-bold text-slate-700">Payment Mode</label>
                   <select
                     value={payMethod}
                     onChange={(e) => setPayMethod(e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs font-bold focus:ring-2 focus:ring-rose-500"
+                    className="w-full px-2.5 py-2 border border-slate-200 rounded-xl text-xs font-bold"
                   >
                     <option value="CASH">Cash (Galla)</option>
                     <option value="UPI">UPI / QR</option>
-                    <option value="BANK_TRANSFER">Bank NEFT/IMPS</option>
-                    <option value="CHEQUE">Cheque</option>
+                    <option value="BANK_TRANSFER">Bank NEFT</option>
                   </select>
                 </div>
 
@@ -555,34 +606,23 @@ export default function CreditorsPage() {
                     type="date"
                     value={payDate}
                     onChange={(e) => setPayDate(e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs font-bold focus:ring-2 focus:ring-rose-500"
+                    className="w-full px-2.5 py-2 border border-slate-200 rounded-xl text-xs font-bold"
                   />
                 </div>
               </div>
 
-              <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-700">Ref / UPI UTR / Cheque No.</label>
-                <input
-                  type="text"
-                  placeholder="Optional reference"
-                  value={payReference}
-                  onChange={(e) => setPayReference(e.target.value)}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs font-semibold focus:ring-2 focus:ring-rose-500"
-                />
-              </div>
-
-              <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-2">
+              <div className="pt-3 flex items-center justify-end gap-2">
                 <button
                   type="button"
                   onClick={() => setShowPayModal(false)}
-                  className="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition"
+                  className="flex-1 py-2.5 rounded-xl text-xs font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="px-5 py-2.5 rounded-xl text-xs font-black bg-rose-600 hover:bg-rose-500 text-white shadow-md transition active:scale-95 cursor-pointer disabled:opacity-50"
+                  className="flex-1 py-2.5 rounded-xl text-xs sm:text-sm font-black bg-rose-600 hover:bg-rose-500 text-white shadow-md transition active:scale-95 disabled:opacity-50"
                 >
                   {submitting ? "Processing..." : "Confirm Payment"}
                 </button>
@@ -594,9 +634,9 @@ export default function CreditorsPage() {
 
       {/* Ledger History Modal */}
       {showLedgerModal && selectedSupplier && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full overflow-hidden border border-slate-200 animate-in fade-in zoom-in-95 duration-150">
-            <div className="p-5 bg-slate-900 text-white flex items-center justify-between">
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4">
+          <div className="bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl max-w-2xl w-full overflow-hidden border border-slate-200 animate-in slide-in-from-bottom duration-200">
+            <div className="p-4 sm:p-5 bg-slate-900 text-white flex items-center justify-between">
               <div>
                 <h3 className="font-bold text-base flex items-center gap-2">
                   <FileText className="w-5 h-5 text-emerald-400" />
@@ -608,29 +648,29 @@ export default function CreditorsPage() {
               </div>
               <button
                 onClick={() => setShowLedgerModal(false)}
-                className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition"
+                className="p-1 rounded-lg text-slate-400 hover:text-white"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <div className="p-5 space-y-4 max-h-[75vh] overflow-y-auto text-xs sm:text-sm">
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 p-3 bg-slate-50 rounded-xl border border-slate-200">
+            <div className="p-4 sm:p-5 space-y-3 max-h-[75vh] overflow-y-auto text-xs sm:text-sm">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 p-3 bg-slate-50 rounded-xl border border-slate-200">
                 <div>
                   <div className="text-[10px] text-slate-500 font-bold uppercase">Opening Balance</div>
-                  <div className="text-sm font-bold text-slate-800">
+                  <div className="text-xs sm:text-sm font-bold text-slate-800">
                     ₹{selectedSupplier.openingBalance.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
                   </div>
                 </div>
                 <div>
-                  <div className="text-[10px] text-slate-500 font-bold uppercase">Current Outstanding</div>
-                  <div className="text-sm font-black text-rose-600">
+                  <div className="text-[10px] text-slate-500 font-bold uppercase">Outstanding Due</div>
+                  <div className="text-xs sm:text-sm font-black text-rose-600">
                     ₹{selectedSupplier.currentBalance.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
                   </div>
                 </div>
-                <div>
+                <div className="col-span-2 sm:col-span-1">
                   <div className="text-[10px] text-slate-500 font-bold uppercase">Contact Phone</div>
-                  <div className="text-sm font-semibold text-slate-800">
+                  <div className="text-xs sm:text-sm font-semibold text-slate-800">
                     {selectedSupplier.phone || "—"}
                   </div>
                 </div>
@@ -639,14 +679,13 @@ export default function CreditorsPage() {
               <div>
                 <h4 className="font-bold text-slate-800 mb-2 flex items-center gap-1.5">
                   <History className="w-4 h-4 text-emerald-600" />
-                  <span>Recent Purchases & Payments</span>
+                  <span>Purchases & Payments History</span>
                 </h4>
 
                 {!ledgerData ? (
                   <div className="p-6 text-center text-slate-400">Loading ledger data...</div>
                 ) : (
                   <div className="space-y-2">
-                    {/* Purchases */}
                     {ledgerData.purchases?.map((pur: any) => (
                       <div
                         key={pur.id}
@@ -669,7 +708,6 @@ export default function CreditorsPage() {
                       </div>
                     ))}
 
-                    {/* Payments */}
                     {ledgerData.supplierPayments?.map((pay: any) => (
                       <div
                         key={pay.id}
@@ -702,10 +740,10 @@ export default function CreditorsPage() {
               </div>
             </div>
 
-            <div className="p-4 border-t border-slate-100 bg-slate-50 flex items-center justify-end">
+            <div className="p-3 border-t border-slate-100 bg-slate-50 flex items-center justify-end">
               <button
                 onClick={() => setShowLedgerModal(false)}
-                className="px-5 py-2 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl transition"
+                className="w-full sm:w-auto px-5 py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl transition"
               >
                 Close Statement
               </button>
@@ -716,4 +754,3 @@ export default function CreditorsPage() {
     </div>
   );
 }
-

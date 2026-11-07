@@ -148,16 +148,16 @@ export default function BankPage() {
   const totalLiquidFunds = totalBankBalance + cashInHand;
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto">
+    <div className="space-y-4 sm:space-y-6 max-w-7xl mx-auto">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h2 className="text-2xl font-black tracking-tight text-slate-900 flex items-center gap-2.5">
-            <Landmark className="w-7 h-7 text-emerald-600" />
+          <h2 className="text-xl sm:text-2xl font-black tracking-tight text-slate-900 flex items-center gap-2">
+            <Landmark className="w-6 h-6 text-emerald-600" />
             <span>Bank & UPI Accounts (Khata & Digital Money)</span>
           </h2>
-          <p className="text-xs sm:text-sm text-slate-500 font-medium mt-1">
-            Maintain separate bank balances, store UPI IDs, and transfer cash between shop drawer and bank accounts.
+          <p className="text-xs text-slate-500 font-medium mt-0.5">
+            Store bank balances, copy UPI IDs, and transfer cash between counter and bank.
           </p>
         </div>
 
@@ -168,7 +168,7 @@ export default function BankPage() {
                 setSelectedAccountId(accounts[0]?.id || "");
                 setShowTransferModal(true);
               }}
-              className="inline-flex items-center gap-1.5 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs sm:text-sm px-4 py-3 rounded-xl transition shadow-xs cursor-pointer"
+              className="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs sm:text-sm px-3.5 py-2.5 rounded-xl transition shadow-xs cursor-pointer active:scale-95"
             >
               <ArrowRightLeft className="w-4 h-4 text-emerald-400" />
               <span>Cash ⇄ Bank Transfer</span>
@@ -177,103 +177,96 @@ export default function BankPage() {
 
           <button
             onClick={() => setShowAddModal(true)}
-            className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs sm:text-sm px-5 py-3 rounded-xl shadow-md transition active:scale-95 cursor-pointer"
+            className="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs sm:text-sm px-4 py-2.5 rounded-xl shadow-md transition active:scale-95 cursor-pointer"
           >
             <Plus className="w-4 h-4 stroke-[2.5]" />
-            <span>+ Add Bank Account</span>
+            <span>+ Add Account</span>
           </button>
         </div>
       </div>
 
-      {/* KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-white p-5 rounded-2xl border-2 border-emerald-200 shadow-xs">
+      {/* KPI Cards (2 cols on mobile) */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 sm:gap-4">
+        <div className="bg-white p-3.5 sm:p-5 rounded-2xl border-2 border-emerald-200 shadow-xs">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-black text-emerald-800 uppercase tracking-wide">
+            <span className="text-[11px] sm:text-xs font-black text-emerald-800 uppercase">
               Total Bank Balance
             </span>
-            <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
-              <Landmark className="w-4 h-4" />
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
+              <Landmark className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </div>
           </div>
-          <div className="mt-3 text-2xl sm:text-3xl font-black text-emerald-700 tracking-tight">
+          <div className="mt-2 text-xl sm:text-3xl font-black text-emerald-700 tracking-tight">
             ₹{totalBankBalance.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
           </div>
-          <div className="text-xs text-emerald-800/80 mt-1 font-semibold">
-            Across {accounts.length} bank accounts
+          <div className="text-[10px] sm:text-xs text-emerald-800/80 mt-0.5 font-semibold">
+            Across {accounts.length} accounts
           </div>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border-2 border-slate-200 shadow-xs">
+        <div className="bg-white p-3.5 sm:p-5 rounded-2xl border-2 border-slate-200 shadow-xs">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-black text-slate-700 uppercase tracking-wide">
+            <span className="text-[11px] sm:text-xs font-black text-slate-700 uppercase">
               Galla Cash in Hand
             </span>
-            <div className="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center font-bold">
-              <Wallet className="w-4 h-4" />
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center font-bold">
+              <Wallet className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </div>
           </div>
-          <div className="mt-3 text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
+          <div className="mt-2 text-xl sm:text-3xl font-black text-slate-900 tracking-tight">
             ₹{cashInHand.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
           </div>
-          <div className="text-xs text-slate-500 mt-1 font-medium">
-            Cash available in register drawer
+          <div className="text-[10px] sm:text-xs text-slate-400 mt-0.5">
+            Register cash drawer
           </div>
         </div>
 
-        <div className="bg-gradient-to-br from-slate-900 to-slate-800 text-white p-5 rounded-2xl shadow-md">
+        <div className="col-span-2 sm:col-span-1 bg-gradient-to-br from-slate-900 to-slate-800 text-white p-3.5 sm:p-5 rounded-2xl shadow-md">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-black text-emerald-400 uppercase tracking-wide">
+            <span className="text-[11px] sm:text-xs font-black text-emerald-400 uppercase">
               Total Liquid Funds (Kul Rokad)
             </span>
-            <div className="w-8 h-8 rounded-lg bg-slate-800 text-emerald-400 flex items-center justify-center font-bold border border-slate-700">
-              <CreditCard className="w-4 h-4" />
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-slate-800 text-emerald-400 flex items-center justify-center font-bold border border-slate-700">
+              <CreditCard className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </div>
           </div>
-          <div className="mt-3 text-2xl sm:text-3xl font-black text-white tracking-tight">
+          <div className="mt-2 text-xl sm:text-3xl font-black text-white tracking-tight">
             ₹{totalLiquidFunds.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
           </div>
-          <div className="text-xs text-slate-400 mt-1">
+          <div className="text-[10px] sm:text-xs text-slate-400 mt-0.5">
             Cash in Hand + All Bank Balances
           </div>
         </div>
       </div>
 
-      {/* Bank Accounts Grid */}
-      <div className="space-y-4">
-        <h3 className="text-sm font-black text-slate-800 uppercase tracking-wide">
+      {/* Connected Bank Accounts */}
+      <div className="space-y-3">
+        <h3 className="text-xs sm:text-sm font-black text-slate-800 uppercase tracking-wide">
           Connected Bank & UPI Accounts
         </h3>
 
         {loading ? (
-          <div className="p-12 bg-white rounded-2xl text-center text-slate-400 text-sm font-semibold border border-slate-200">
+          <div className="p-12 bg-white rounded-2xl text-center text-slate-400 text-xs font-semibold border border-slate-200">
             Loading Accounts...
           </div>
         ) : accounts.length === 0 ? (
           <div className="p-12 bg-white rounded-2xl text-center space-y-3 border border-slate-200">
-            <Landmark className="w-12 h-12 text-slate-300 mx-auto" />
+            <Landmark className="w-10 h-10 text-slate-300 mx-auto" />
             <div className="text-sm font-bold text-slate-700">No Bank Accounts Linked Yet</div>
             <p className="text-xs text-slate-400 max-w-sm mx-auto">
-              Add your store's current or savings account, QR UPI ID, and keep your business digital money organized.
+              Add your store's bank account, UPI ID, and keep digital money organized.
             </p>
-            <button
-              onClick={() => setShowAddModal(true)}
-              className="mt-2 inline-flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs px-4 py-2 rounded-xl transition cursor-pointer"
-            >
-              <Plus className="w-4 h-4" />
-              <span>Add First Bank Account</span>
-            </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
             {accounts.map((acc) => (
               <div
                 key={acc.id}
-                className="bg-white rounded-2xl border-2 border-slate-200 p-5 shadow-xs hover:border-emerald-400 transition flex flex-col justify-between"
+                className="bg-white rounded-2xl border-2 border-slate-200 p-4 sm:p-5 shadow-xs hover:border-emerald-400 transition flex flex-col justify-between"
               >
                 <div>
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2.5">
                       <div className="w-9 h-9 rounded-xl bg-slate-900 text-white flex items-center justify-center font-bold">
                         <Building2 className="w-5 h-5 text-emerald-400" />
                       </div>
@@ -284,14 +277,13 @@ export default function BankPage() {
                     </div>
 
                     {acc.isPrimary && (
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800">
+                      <span className="px-2 py-0.5 rounded-full text-[9px] font-black bg-emerald-100 text-emerald-800">
                         PRIMARY
                       </span>
                     )}
                   </div>
 
-                  {/* Account Numbers */}
-                  <div className="mt-4 p-3 bg-slate-50 rounded-xl space-y-2 border border-slate-100 font-mono text-xs">
+                  <div className="mt-3.5 p-3 bg-slate-50 rounded-xl space-y-2 border border-slate-100 font-mono text-xs">
                     <div className="flex items-center justify-between text-slate-600">
                       <span className="text-[10px] text-slate-400 uppercase font-sans">A/C Number:</span>
                       <strong className="text-slate-900 tracking-wider">
@@ -307,7 +299,7 @@ export default function BankPage() {
                     )}
 
                     {acc.upiId && (
-                      <div className="flex items-center justify-between text-slate-600 pt-1 border-t border-slate-200">
+                      <div className="flex items-center justify-between text-slate-600 pt-1.5 border-t border-slate-200">
                         <span className="text-[10px] text-slate-400 uppercase font-sans flex items-center gap-1">
                           <QrCode className="w-3 h-3 text-emerald-600" />
                           <span>UPI ID:</span>
@@ -318,11 +310,11 @@ export default function BankPage() {
                           className="flex items-center gap-1 font-bold text-emerald-700 hover:underline cursor-pointer"
                           title="Click to copy UPI"
                         >
-                          <span>{acc.upiId}</span>
+                          <span className="truncate max-w-[150px]">{acc.upiId}</span>
                           {copiedUpi === acc.upiId ? (
-                            <Check className="w-3 h-3 text-emerald-600" />
+                            <Check className="w-3.5 h-3.5 text-emerald-600" />
                           ) : (
-                            <Copy className="w-3 h-3 text-slate-400" />
+                            <Copy className="w-3.5 h-3.5 text-slate-400" />
                           )}
                         </button>
                       </div>
@@ -330,18 +322,17 @@ export default function BankPage() {
                   </div>
                 </div>
 
-                {/* Bottom Balance & Actions */}
-                <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">
+                <div className="mt-3.5 pt-3 border-t border-slate-100 flex items-center justify-between">
                   <div>
                     <span className="text-[10px] text-slate-400 uppercase font-bold block">
-                      Current Balance
+                      Balance
                     </span>
                     <strong className="text-lg font-black text-emerald-700 tracking-tight">
                       ₹{acc.balance.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
                     </strong>
                   </div>
 
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-1.5">
                     <button
                       type="button"
                       onClick={() => {
@@ -349,15 +340,13 @@ export default function BankPage() {
                         setShowTransferModal(true);
                       }}
                       className="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold rounded-lg transition"
-                      title="Deposit or Withdraw"
                     >
                       Transfer
                     </button>
                     <button
                       type="button"
                       onClick={() => handleDeleteAccount(acc.id)}
-                      className="p-1.5 text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition"
-                      title="Delete account"
+                      className="p-1.5 text-slate-400 hover:text-rose-500 rounded-lg transition"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
@@ -369,33 +358,30 @@ export default function BankPage() {
         )}
       </div>
 
-      {/* Add Bank Modal */}
+      {/* Add Bank Modal (Bottom Sheet on Mobile) */}
       {showAddModal && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden border border-slate-200 animate-in fade-in zoom-in-95 duration-150">
-            <div className="p-5 bg-slate-900 text-white flex items-center justify-between">
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4">
+          <div className="bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl max-w-md w-full overflow-hidden border border-slate-200 animate-in slide-in-from-bottom duration-200">
+            <div className="p-4 sm:p-5 bg-slate-900 text-white flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Landmark className="w-5 h-5 text-emerald-400" />
                 <h3 className="font-bold text-base">Add New Bank Account</h3>
               </div>
-              <button
-                onClick={() => setShowAddModal(false)}
-                className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer"
-              >
+              <button onClick={() => setShowAddModal(false)} className="p-1 rounded-lg text-slate-400 hover:text-white">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <form onSubmit={handleCreateAccount} className="p-5 space-y-3.5">
+            <form onSubmit={handleCreateAccount} className="p-4 sm:p-5 space-y-3.5 max-h-[85vh] overflow-y-auto">
               <div className="space-y-1">
                 <label className="text-xs font-bold text-slate-700">Bank Name *</label>
                 <input
                   type="text"
                   required
-                  placeholder="e.g. State Bank of India / HDFC Bank"
+                  placeholder="e.g. State Bank of India / HDFC"
                   value={bankName}
                   onChange={(e) => setBankName(e.target.value)}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs sm:text-sm font-semibold focus:ring-2 focus:ring-emerald-500"
+                  className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-2 focus:ring-emerald-500"
                 />
               </div>
 
@@ -406,7 +392,7 @@ export default function BankPage() {
                   placeholder="Store / Owner Name"
                   value={accountHolder}
                   onChange={(e) => setAccountHolder(e.target.value)}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs sm:text-sm font-semibold focus:ring-2 focus:ring-emerald-500"
+                  className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-2 focus:ring-emerald-500"
                 />
               </div>
 
@@ -418,19 +404,19 @@ export default function BankPage() {
                   placeholder="e.g. 5010023456789"
                   value={accountNumber}
                   onChange={(e) => setAccountNumber(e.target.value)}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs sm:text-sm font-semibold font-mono focus:ring-2 focus:ring-emerald-500"
+                  className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm font-mono font-bold focus:ring-2 focus:ring-emerald-500"
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-2">
                 <div className="space-y-1">
                   <label className="text-xs font-bold text-slate-700">IFSC Code</label>
                   <input
                     type="text"
-                    placeholder="e.g. SBIN0001234"
+                    placeholder="SBIN0001234"
                     value={ifscCode}
                     onChange={(e) => setIfscCode(e.target.value.toUpperCase())}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs sm:text-sm font-semibold uppercase font-mono focus:ring-2 focus:ring-emerald-500"
+                    className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-xs font-mono font-bold uppercase focus:ring-2 focus:ring-emerald-500"
                   />
                 </div>
 
@@ -442,7 +428,7 @@ export default function BankPage() {
                     placeholder="0.00"
                     value={initialBalance}
                     onChange={(e) => setInitialBalance(e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs sm:text-sm font-semibold focus:ring-2 focus:ring-emerald-500"
+                    className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm font-bold focus:ring-2 focus:ring-emerald-500"
                   />
                 </div>
               </div>
@@ -451,10 +437,10 @@ export default function BankPage() {
                 <label className="text-xs font-bold text-slate-700">UPI ID / VPA</label>
                 <input
                   type="text"
-                  placeholder="e.g. storename@okaxis or 9876543210@paytm"
+                  placeholder="storename@okaxis"
                   value={upiId}
                   onChange={(e) => setUpiId(e.target.value.toLowerCase())}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs sm:text-sm font-semibold focus:ring-2 focus:ring-emerald-500"
+                  className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-xs font-mono focus:ring-2 focus:ring-emerald-500"
                 />
               </div>
 
@@ -471,18 +457,18 @@ export default function BankPage() {
                 </label>
               </div>
 
-              <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-2">
+              <div className="pt-2 flex gap-2">
                 <button
                   type="button"
                   onClick={() => setShowAddModal(false)}
-                  className="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition"
+                  className="flex-1 py-2.5 rounded-xl text-xs font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="px-5 py-2.5 rounded-xl text-xs font-black bg-emerald-600 hover:bg-emerald-500 text-white shadow-md transition active:scale-95 cursor-pointer disabled:opacity-50"
+                  className="flex-1 py-2.5 rounded-xl text-xs sm:text-sm font-black bg-emerald-600 hover:bg-emerald-500 text-white shadow-md transition active:scale-95 disabled:opacity-50"
                 >
                   {submitting ? "Saving..." : "Save Account"}
                 </button>
@@ -492,31 +478,28 @@ export default function BankPage() {
         </div>
       )}
 
-      {/* Transfer Funds Modal */}
+      {/* Transfer Funds Modal (Bottom Sheet on Mobile) */}
       {showTransferModal && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden border border-slate-200 animate-in fade-in zoom-in-95 duration-150">
-            <div className="p-5 bg-slate-900 text-white flex items-center justify-between">
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4">
+          <div className="bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl max-w-md w-full overflow-hidden border border-slate-200 animate-in slide-in-from-bottom duration-200">
+            <div className="p-4 sm:p-5 bg-slate-900 text-white flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <ArrowRightLeft className="w-5 h-5 text-emerald-400" />
                 <h3 className="font-bold text-base">Cash ⇄ Bank Transfer</h3>
               </div>
-              <button
-                onClick={() => setShowTransferModal(false)}
-                className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer"
-              >
+              <button onClick={() => setShowTransferModal(false)} className="p-1 rounded-lg text-slate-400 hover:text-white">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <form onSubmit={handleTransfer} className="p-5 space-y-4">
+            <form onSubmit={handleTransfer} className="p-4 sm:p-5 space-y-3.5">
               <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-700">Transfer Type</label>
+                <label className="text-xs font-bold text-slate-700">Transfer Direction</label>
                 <div className="grid grid-cols-2 gap-2">
                   <button
                     type="button"
                     onClick={() => setDirection("CASH_TO_BANK")}
-                    className={`py-2 px-3 rounded-xl text-xs font-black border transition ${
+                    className={`py-2 px-2.5 rounded-xl text-xs font-black border transition ${
                       direction === "CASH_TO_BANK"
                         ? "bg-emerald-500 text-slate-950 border-emerald-500 shadow-xs"
                         : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
@@ -527,7 +510,7 @@ export default function BankPage() {
                   <button
                     type="button"
                     onClick={() => setDirection("BANK_TO_CASH")}
-                    className={`py-2 px-3 rounded-xl text-xs font-black border transition ${
+                    className={`py-2 px-2.5 rounded-xl text-xs font-black border transition ${
                       direction === "BANK_TO_CASH"
                         ? "bg-amber-500 text-slate-950 border-amber-500 shadow-xs"
                         : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
@@ -543,7 +526,7 @@ export default function BankPage() {
                 <select
                   value={selectedAccountId}
                   onChange={(e) => setSelectedAccountId(e.target.value)}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs sm:text-sm font-semibold focus:ring-2 focus:ring-emerald-500"
+                  className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-xs sm:text-sm font-semibold focus:ring-2 focus:ring-emerald-500"
                 >
                   {accounts.map((a) => (
                     <option key={a.id} value={a.id}>
@@ -570,25 +553,25 @@ export default function BankPage() {
                 <label className="text-xs font-bold text-slate-700">Reference / Slip / UTR</label>
                 <input
                   type="text"
-                  placeholder="Bank deposit slip / ATM receipt ref"
+                  placeholder="Optional reference"
                   value={reference}
                   onChange={(e) => setReference(e.target.value)}
                   className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs font-semibold focus:ring-2 focus:ring-emerald-500"
                 />
               </div>
 
-              <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-2">
+              <div className="pt-2 flex gap-2">
                 <button
                   type="button"
                   onClick={() => setShowTransferModal(false)}
-                  className="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition"
+                  className="flex-1 py-2.5 rounded-xl text-xs font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="px-6 py-2.5 rounded-xl text-xs sm:text-sm font-black bg-emerald-600 hover:bg-emerald-500 text-white shadow-md transition active:scale-95 cursor-pointer disabled:opacity-50"
+                  className="flex-1 py-2.5 rounded-xl text-xs sm:text-sm font-black bg-emerald-600 hover:bg-emerald-500 text-white shadow-md transition active:scale-95 disabled:opacity-50"
                 >
                   {submitting ? "Transferring..." : "Confirm Transfer"}
                 </button>
