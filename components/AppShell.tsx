@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import Sidebar from "@/components/Sidebar";
 import Navbar from "@/components/Navbar";
+import BottomNav from "@/components/BottomNav";
 
 interface AppShellProps {
   user: {
@@ -56,9 +57,10 @@ export default function AppShell({
           currency={currentCurrency}
           onToggleMobileMenu={() => setMobileMenuOpen((prev) => !prev)}
         />
-        <main className="flex-1 overflow-y-auto p-3 sm:p-4 md:p-6 lg:p-8 smooth-scroll overscroll-contain">
+        <main className="flex-1 overflow-y-auto p-3 sm:p-4 md:p-6 lg:p-8 pb-20 md:pb-8 smooth-scroll overscroll-contain">
           {children}
         </main>
+        <BottomNav onOpenMenu={() => setMobileMenuOpen(true)} />
       </div>
     </div>
   );
