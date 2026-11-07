@@ -42,13 +42,13 @@ export default function Navbar({
   }, []);
 
   return (
-    <header className="h-16 bg-white border-b border-slate-200 px-3 sm:px-6 flex items-center justify-between no-print z-10 sticky top-0 shadow-xs">
-      <div className="flex items-center gap-2 sm:gap-4">
+    <header className="h-16 bg-white border-b border-slate-200 px-2 sm:px-6 flex items-center justify-between no-print z-10 sticky top-0 shadow-xs">
+      <div className="flex items-center gap-1.5 sm:gap-4 min-w-0">
         {onToggleMobileMenu && (
           <button
             type="button"
             onClick={onToggleMobileMenu}
-            className="md:hidden p-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition border border-slate-200"
+            className="md:hidden p-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition border border-slate-200 shrink-0"
             title="Toggle Menu"
             aria-label="Toggle navigation menu"
           >
@@ -56,9 +56,9 @@ export default function Navbar({
           </button>
         )}
 
-        <div className="flex items-center gap-2 text-slate-600 bg-slate-100 px-2.5 sm:px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-medium">
+        <div className="flex items-center gap-1.5 text-slate-600 bg-slate-100 px-2 sm:px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-medium shrink-0">
           <Calendar className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-          <span className="truncate">{currentDate || "Today"}</span>
+          <span className="hidden sm:inline truncate">{currentDate || "Today"}</span>
         </div>
 
         <span className="hidden lg:inline-block text-xs text-slate-400">|</span>
@@ -67,7 +67,7 @@ export default function Navbar({
         </span>
       </div>
 
-      <div className="flex items-center gap-1.5 sm:gap-2.5">
+      <div className="flex items-center gap-1 sm:gap-2.5 shrink-0">
         <Link
           href="/expenses?tab=expense&new=true"
           prefetch={true}

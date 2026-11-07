@@ -231,28 +231,28 @@ function ExpensesContent() {
           </p>
         </div>
 
-        <div className="flex items-center gap-2 bg-slate-200/80 p-1 rounded-xl">
+        <div className="grid grid-cols-2 sm:flex items-center gap-1.5 bg-slate-200/80 p-1 rounded-xl w-full sm:w-auto">
           <button
             onClick={() => setActiveTab("expense")}
-            className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-semibold transition ${
+            className={`flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition ${
               activeTab === "expense"
                 ? "bg-rose-600 text-white shadow-xs"
                 : "text-slate-600 hover:text-slate-900"
             }`}
           >
             <ArrowDownCircle className="w-3.5 h-3.5" />
-            <span>Daily Expenses ({expenses.length})</span>
+            <span className="truncate">Expenses ({expenses.length})</span>
           </button>
           <button
             onClick={() => setActiveTab("income")}
-            className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-semibold transition ${
+            className={`flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition ${
               activeTab === "income"
                 ? "bg-teal-600 text-white shadow-xs"
                 : "text-slate-600 hover:text-slate-900"
             }`}
           >
             <ArrowUpCircle className="w-3.5 h-3.5" />
-            <span>Other Income ({incomes.length})</span>
+            <span className="truncate">Income ({incomes.length})</span>
           </button>
         </div>
       </div>

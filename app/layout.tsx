@@ -1,8 +1,16 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import AppShell from "@/components/AppShell";
 import { getCurrentUser } from "@/lib/auth";
 import { getBusinessProfile } from "@/lib/actions";
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+  viewportFit: "cover",
+  themeColor: "#0f172a",
+};
 
 export const metadata: Metadata = {
   title: "SmartBazaar - Local Business Billing & Daybook POS",

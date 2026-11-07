@@ -536,7 +536,7 @@ export default function BillingPage() {
           </div>
 
           {/* Right Side: Customer, Discounts, Totals & Checkout (5 cols) */}
-          <div className="lg:col-span-5 space-y-4">
+          <div id="checkout-section" className="lg:col-span-5 space-y-4">
             {/* Customer Picker & Bill Date */}
             <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs space-y-3">
               {/* Bill Date Selector */}
@@ -653,7 +653,7 @@ export default function BillingPage() {
                 <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-2">
                   Payment Mode
                 </span>
-                <div className="grid grid-cols-4 gap-2">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                   {(["CASH", "UPI", "CARD", "CREDIT"] as const).map((mode) => (
                     <button
                       key={mode}
@@ -737,6 +737,40 @@ export default function BillingPage() {
               </div>
             </div>
           </div>
+
+          {/* Mobile Sticky Quick-Checkout Bar */}
+          {cart.length > 0 && (
+            <div className="lg:hidden fixed bottom-3 left-3 right-3 z-40 bg-slate-900/95 backdrop-blur-md text-white p-3 rounded-2xl shadow-2xl border border-slate-700/80 flex items-center justify-between animate-in slide-in-from-bottom duration-200">
+              <div className="min-w-0 pr-2">
+                <div className="text-[11px] text-slate-300 font-medium truncate">
+                  {cart.reduce((s, i) => s + i.quantity, 0)} items in bill
+                </div>
+                <div className="text-sm font-extrabold text-emerald-400">
+                  {currency}{grandTotal.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
+                </div>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const checkoutEl = document.getElementById("checkout-section");
+                    checkoutEl?.scrollIntoView({ behavior: "smooth" });
+                  }}
+                  className="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-xs font-semibold rounded-xl text-slate-200 border border-slate-700"
+                >
+                  Pay Bill ↓
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleSaveInvoice("save")}
+                  className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-xs font-bold rounded-xl text-white shadow-md flex items-center gap-1"
+                >
+                  <Check className="w-3.5 h-3.5" />
+                  <span>Save</span>
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       ) : (
         /* INVOICES HISTORY TAB */
@@ -844,8 +878,8 @@ export default function BillingPage() {
 
       {/* MODAL: New Customer Quick Create */}
       {showNewCustomerModal && (
-        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4 z-50 no-print">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl">
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 z-50 no-print">
+          <div className="bg-white rounded-2xl max-w-md w-full p-5 sm:p-6 shadow-xl max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <h3 className="font-bold text-slate-900 text-base">Add New Customer</h3>
               <button
@@ -919,8 +953,8 @@ export default function BillingPage() {
 
       {/* MODAL: Collect Due Payment */}
       {collectModalInv && (
-        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4 z-50 no-print">
-          <div className="bg-white rounded-2xl max-w-sm w-full p-6 shadow-xl">
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 z-50 no-print">
+          <div className="bg-white rounded-2xl max-w-sm w-full p-5 sm:p-6 shadow-xl max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <h3 className="font-bold text-slate-900 text-base">Collect Due Payment</h3>
               <button
