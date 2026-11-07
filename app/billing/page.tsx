@@ -60,6 +60,7 @@ export default function BillingPage() {
   const [customerName, setCustomerName] = useState<string>("Walk-in Customer");
   const [customerPhone, setCustomerPhone] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState<string>("ALL");
   const [discountAmount, setDiscountAmount] = useState<number>(0);
   const [applyTax, setApplyTax] = useState<boolean>(true);
   const [paymentMethod, setPaymentMethod] = useState<"CASH" | "UPI" | "CARD" | "CREDIT">("CASH");
@@ -330,12 +331,15 @@ export default function BillingPage() {
     }
   };
 
-  // Filtered products for search
-  const filteredProducts = products.filter(
-    (p) =>
+  // Filtered products for search & category
+  const categories = ["ALL", ...Array.from(new Set(products.map((p) => p.category))).filter(Boolean)];
+  const filteredProducts = products.filter((p) => {
+    const matchCat = selectedCategory === "ALL" || p.category === selectedCategory;
+    const matchQuery =
       p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (p.sku && p.sku.toLowerCase().includes(searchQuery.toLowerCase()))
-  );
+      (p.sku && p.sku.toLowerCase().includes(searchQuery.toLowerCase()));
+    return matchCat && matchQuery;
+  });
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
@@ -379,51 +383,75 @@ export default function BillingPage() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           {/* Left Side: Product Catalog & Item Selection (7 cols) */}
           <div className="lg:col-span-7 space-y-4">
-            {/* Search Box */}
-            <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
+            {/* Search Box & Category Touch Bar */}
+            <div className="bg-white p-4 sm:p-5 rounded-2xl border-2 border-slate-200 shadow-xs space-y-3">
               <div className="relative">
                 <Search className="w-4 h-4 absolute left-3.5 top-3 text-slate-400" />
                 <input
                   type="text"
-                  placeholder="Search item by name or barcode SKU..."
+                  placeholder="Scan barcode or type item name..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition"
+                  className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border-2 border-slate-200 rounded-xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition"
                 />
               </div>
 
-              {/* Quick Add Grid */}
-              <div className="mt-3 grid grid-cols-2 sm:grid-cols-3 gap-2.5 max-h-72 overflow-y-auto pr-1">
-                {filteredProducts.slice(0, 12).map((prod) => (
+              {/* Category Quick Filter Pills */}
+              <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar">
+                {categories.map((cat) => (
                   <button
-                    key={prod.id}
-                    onClick={() => addToCart(prod)}
-                    className="p-3 text-left bg-slate-50 hover:bg-emerald-50/70 border border-slate-200/80 hover:border-emerald-300 rounded-xl transition flex flex-col justify-between group"
+                    key={cat}
+                    type="button"
+                    onClick={() => setSelectedCategory(cat)}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-black whitespace-nowrap transition active:scale-95 ${
+                      selectedCategory === cat
+                        ? "bg-slate-900 text-white shadow-xs"
+                        : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                    }`}
                   >
-                    <div>
-                      <div className="font-semibold text-slate-900 text-xs line-clamp-1 group-hover:text-emerald-700">
-                        {prod.name}
-                      </div>
-                      <div className="text-[11px] mt-0.5">
-                        {prod.stock <= 0 ? (
-                          <span className="text-rose-600 font-semibold">Out of Stock</span>
-                        ) : prod.stock <= 5 ? (
-                          <span className="text-amber-600 font-medium">Low: {prod.stock} {prod.unit}</span>
-                        ) : (
-                          <span className="text-slate-400">Stock: {prod.stock} {prod.unit}</span>
-                        )}
-                      </div>
-                    </div>
-                    <div className="mt-2 flex items-center justify-between text-xs">
-                      <span className="font-bold text-slate-900">
-                        {currency}{prod.sellingPrice}
-                      </span>
-                      <span className="w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center text-xs">
-                        +
-                      </span>
-                    </div>
+                    {cat === "ALL" ? "All Items" : cat}
                   </button>
                 ))}
+              </div>
+
+              {/* Quick Add Product Touch Grid */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 max-h-80 overflow-y-auto pr-1 smooth-scroll">
+                {filteredProducts.length === 0 ? (
+                  <div className="col-span-full py-8 text-center text-slate-400 text-xs font-medium">
+                    No products found in this category.
+                  </div>
+                ) : (
+                  filteredProducts.map((prod) => (
+                    <button
+                      key={prod.id}
+                      onClick={() => addToCart(prod)}
+                      className="p-3 text-left bg-slate-50 hover:bg-emerald-50 active:scale-95 border-2 border-slate-200 hover:border-emerald-500 rounded-2xl transition shadow-xs flex flex-col justify-between group min-h-[96px]"
+                    >
+                      <div>
+                        <div className="font-extrabold text-slate-900 text-xs sm:text-sm line-clamp-2 leading-tight group-hover:text-emerald-800">
+                          {prod.name}
+                        </div>
+                        <div className="text-[11px] mt-1">
+                          {prod.stock <= 0 ? (
+                            <span className="text-rose-600 font-extrabold bg-rose-50 px-1.5 py-0.5 rounded text-[10px]">Out of Stock</span>
+                          ) : prod.stock <= 5 ? (
+                            <span className="text-amber-700 font-bold bg-amber-50 px-1.5 py-0.5 rounded text-[10px]">Low: {prod.stock}</span>
+                          ) : (
+                            <span className="text-slate-400 text-[10px] font-medium">{prod.stock} {prod.unit}</span>
+                          )}
+                        </div>
+                      </div>
+                      <div className="mt-2.5 flex items-center justify-between">
+                        <span className="font-black text-emerald-700 text-sm sm:text-base">
+                          {currency}{prod.sellingPrice}
+                        </span>
+                        <span className="w-6 h-6 rounded-lg bg-emerald-600 group-hover:bg-emerald-500 text-white flex items-center justify-center font-black text-sm shadow-xs">
+                          +
+                        </span>
+                      </div>
+                    </button>
+                  ))
+                )}
               </div>
             </div>
 
@@ -686,6 +714,30 @@ export default function BillingPage() {
                   </div>
                 </div>
 
+                {/* Quick Cash Presets */}
+                {paymentMethod === "CASH" && (
+                  <div className="flex items-center gap-1.5 pt-1.5 flex-wrap">
+                    <span className="text-[10px] text-slate-500 font-bold uppercase">Quick Tender:</span>
+                    <button
+                      type="button"
+                      onClick={() => setPaidAmount(String(grandTotal))}
+                      className="px-2 py-0.5 bg-emerald-100 hover:bg-emerald-200 text-emerald-900 border border-emerald-300 rounded-md text-[11px] font-black active:scale-95 transition"
+                    >
+                      Exact ({currency}{grandTotal})
+                    </button>
+                    {[100, 200, 500, 2000].map((preset) => (
+                      <button
+                        key={preset}
+                        type="button"
+                        onClick={() => setPaidAmount(String(preset))}
+                        className="px-2 py-0.5 bg-white hover:bg-slate-100 text-slate-800 border border-slate-300 rounded-md text-[11px] font-bold active:scale-95 transition"
+                      >
+                        {currency}{preset}
+                      </button>
+                    ))}
+                  </div>
+                )}
+
                 {grandTotal > (parseFloat(paidAmount) || 0) && (
                   <div className="flex justify-between text-xs text-amber-700 font-semibold pt-1 border-t border-slate-200/60">
                     <span>Pending Due (Added to Khata):</span>
@@ -694,9 +746,9 @@ export default function BillingPage() {
                 )}
 
                 {(parseFloat(paidAmount) || 0) > grandTotal && (
-                  <div className="flex justify-between text-xs text-emerald-700 font-semibold pt-1 border-t border-slate-200/60">
-                    <span>Change to Return to Customer:</span>
-                    <span>{currency}{((parseFloat(paidAmount) || 0) - grandTotal).toFixed(2)}</span>
+                  <div className="flex justify-between items-center p-2 rounded-lg bg-emerald-100/90 border border-emerald-300 text-emerald-900 text-xs font-black">
+                    <span>💵 Return Change to Customer:</span>
+                    <span className="text-sm font-black">{currency}{((parseFloat(paidAmount) || 0) - grandTotal).toFixed(2)}</span>
                   </div>
                 )}
               </div>

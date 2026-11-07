@@ -314,6 +314,34 @@ function ExpensesContent() {
             onSubmit={activeTab === "expense" ? handleCreateExpense : handleCreateIncome}
             className="space-y-3.5"
           >
+            {/* Quick Tap Category Pills */}
+            {activeTab === "expense" && (
+              <div>
+                <span className="text-[10px] font-black uppercase text-slate-500 mb-1.5 block">
+                  Quick Category Tap:
+                </span>
+                <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar">
+                  {EXPENSE_CATEGORIES.slice(0, 6).map((c) => (
+                    <button
+                      key={c}
+                      type="button"
+                      onClick={() => {
+                        setCategory(c);
+                        if (!title.trim()) setTitle(c);
+                      }}
+                      className={`px-2.5 py-1 rounded-lg text-[11px] font-black whitespace-nowrap active:scale-95 transition border ${
+                        category === c
+                          ? "bg-rose-600 text-white border-rose-600 shadow-xs"
+                          : "bg-slate-100 text-slate-700 border-slate-200 hover:bg-slate-200"
+                      }`}
+                    >
+                      {c.split("&")[0].trim()}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <div>
               <label className="block text-xs font-semibold text-slate-700 mb-1">
                 {activeTab === "expense" ? "Expense Description *" : "Income Description *"}

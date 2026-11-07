@@ -102,13 +102,13 @@ export default function Sidebar({
               href={item.href}
               prefetch={true}
               onClick={onClose}
-              className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-medium transition-colors duration-100 ${
+              className={`flex items-center gap-3 px-3.5 py-3 rounded-xl text-xs sm:text-sm font-bold transition active:scale-95 duration-100 ${
                 isActive
-                  ? "bg-emerald-600 text-white shadow-sm shadow-emerald-600/30"
-                  : "text-slate-300 hover:text-white hover:bg-slate-800/80"
+                  ? "bg-emerald-400 text-slate-950 shadow-md shadow-emerald-400/25 font-black"
+                  : "text-slate-300 hover:text-white hover:bg-slate-800"
               }`}
             >
-              <Icon className={`w-4 h-4 ${isActive ? "text-white" : "text-slate-400"}`} />
+              <Icon className={`w-4 h-4 stroke-[2.2] ${isActive ? "text-slate-950" : "text-slate-400"}`} />
               <span>{item.name}</span>
             </Link>
           );

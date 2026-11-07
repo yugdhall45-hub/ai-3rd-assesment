@@ -424,8 +424,28 @@ export default function CustomersPage() {
                   required
                   value={payAmount}
                   onChange={(e) => setPayAmount(e.target.value)}
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                  className="w-full px-3 py-2 bg-slate-50 border-2 border-slate-200 rounded-xl text-base font-black text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                 />
+                {/* Quick Khata Tender Presets */}
+                <div className="flex items-center gap-1.5 mt-2 flex-wrap">
+                  <button
+                    type="button"
+                    onClick={() => setPayAmount(String(activePaymentCustomer.totalDues || 0))}
+                    className="px-2.5 py-1 bg-emerald-100 hover:bg-emerald-200 text-emerald-900 rounded-lg text-xs font-extrabold active:scale-95 transition"
+                  >
+                    Full Balance ({currency}{activePaymentCustomer.totalDues})
+                  </button>
+                  {[500, 1000, 2000, 5000].map((preset) => (
+                    <button
+                      key={preset}
+                      type="button"
+                      onClick={() => setPayAmount(String(preset))}
+                      className="px-2 py-1 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-lg text-xs font-bold active:scale-95 transition"
+                    >
+                      {currency}{preset}
+                    </button>
+                  ))}
+                </div>
               </div>
 
               <div>
