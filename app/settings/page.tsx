@@ -14,30 +14,46 @@ import {
 import { getBusinessProfile, updateBusinessProfile } from "@/lib/actions";
 
 // Module-level in-memory cache for instant 0ms tab switching
-let cachedProfileData: any = null;
+const defaultProfile = {
+  name: "SmartBazaar Local Mart",
+  tagline: "Quality Products & Daily Essentials",
+  phone: "",
+  email: "",
+  address: "",
+  taxId: "",
+  currency: "₹",
+  receiptFooter: "Thank you for your visit! Please come again.",
+  taxRate: 5,
+};
+
+let cachedProfileData: any = defaultProfile;
+let hasLoadedSettings = false;
 
 export default function SettingsPage() {
-  const [profile, setProfile] = useState<any>(() => cachedProfileData);
-  const [loading, setLoading] = useState(!cachedProfileData);
+  const [profile, setProfile] = useState<any>(() => cachedProfileData || defaultProfile);
+  const [isRefreshing, setIsRefreshing] = useState(!hasLoadedSettings);
   const [saving, setSaving] = useState(false);
   const [successMsg, setSuccessMsg] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
 
   const loadProfile = async (silent = false) => {
-    if (!silent && !cachedProfileData) setLoading(true);
+    if (silent) setIsRefreshing(true);
     try {
       const p = await getBusinessProfile();
-      setProfile(p);
-      cachedProfileData = p;
+      if (p) {
+        setProfile(p);
+        cachedProfileData = p;
+        hasLoadedSettings = true;
+      }
     } catch (e) {
       console.error(e);
     } finally {
-      setLoading(false);
+      setIsRefreshing(false);
     }
   };
 
   useEffect(() => {
-    loadProfile(Boolean(cachedProfileData));
+    loadProfile(hasLoadedSettings);
   }, []);
 
   const handleSave = async (e: React.FormEvent) => {
@@ -73,14 +89,6 @@ export default function SettingsPage() {
       setSaving(false);
     }
   };
-
-  if (loading || !profile) {
-    return (
-      <div className="p-12 text-center text-slate-400 text-xs">
-        Loading settings...
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-6 max-w-4xl mx-auto">

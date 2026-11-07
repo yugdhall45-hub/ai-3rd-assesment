@@ -7,14 +7,59 @@
   --foreground: #0f172a;
 }
 
+html {
+  scroll-behavior: smooth;
+  text-rendering: optimizeLegibility;
+  -webkit-text-size-adjust: 100%;
+}
+
 body {
   color: var(--foreground);
   background: var(--background);
   font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  touch-action: manipulation;
+  overscroll-behavior-y: none;
 }
 
-/* Custom scrollbars */
+/* 120Hz Ultra-smooth touch & click feedback */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Button & interactive press tactile micro-transitions (sub-frame 75ms) */
+button, a[href], input[type="button"], input[type="submit"] {
+  touch-action: manipulation;
+  user-select: none;
+}
+
+button:active:not(:disabled), a[href]:active {
+  transform: scale(0.985);
+  transition: transform 60ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+/* Smooth 120Hz scrolling container */
+.smooth-scroll {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  scroll-behavior: smooth;
+}
+
+/* Hardware layer promotion for zero-frame-drop rendering */
+.hardware-accelerated {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  will-change: transform;
+}
+
+/* Content-visibility optimization for long lists to maintain constant 120 FPS */
+tbody tr {
+  content-visibility: auto;
+  contain-intrinsic-size: 0 46px;
+}
+
+/* Custom scrollbars - optimized for high-refresh displays */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;

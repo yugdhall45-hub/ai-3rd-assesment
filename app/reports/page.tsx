@@ -25,24 +25,37 @@ function formatDate(d: Date): string {
 // Module-level in-memory cache for instant 0ms tab switching
 const cachedReportsMap: Record<string, { data: any; profile: any }> = {};
 
+const defaultReportData = {
+  totalSales: 0,
+  totalOtherIncome: 0,
+  totalRevenue: 0,
+  cogs: 0,
+  grossProfit: 0,
+  totalExpenses: 0,
+  netProfit: 0,
+  profitMarginPercent: "0.0",
+  invoicesCount: 0,
+  expensesCount: 0,
+  expenseCategories: [],
+  paymentMethods: [],
+  topProducts: [],
+};
+
 export default function ReportsPage() {
   const todayStr = formatDate(new Date());
   const [startDate, setStartDate] = useState(todayStr);
   const [endDate, setEndDate] = useState(todayStr);
   const initialCache = cachedReportsMap[`${todayStr}_${todayStr}`];
-  const [data, setData] = useState<any>(() => initialCache?.data || null);
+  const [data, setData] = useState<any>(() => initialCache?.data || defaultReportData);
   const [profile, setProfile] = useState<any>(() => initialCache?.profile || { currency: "₹", name: "SmartBazaar Local Mart" });
-  const [loading, setLoading] = useState(!initialCache);
-  const [isFetching, setIsFetching] = useState(false); // background refresh indicator
+  const [isFetching, setIsFetching] = useState(!initialCache);
   const [dateError, setDateError] = useState(""); // date validation error
 
   const currency = profile.currency || "₹";
 
   const loadData = async (s: string, e: string, silent = false) => {
     const key = `${s}_${e}`;
-    const hasCache = Boolean(cachedReportsMap[key]);
-    if (!silent && !hasCache) setLoading(true);
-    if (silent) setIsFetching(true);
+    setIsFetching(true);
     try {
       const [rep, prof] = await Promise.all([
         getReports(s, e),
@@ -54,7 +67,6 @@ export default function ReportsPage() {
     } catch (err) {
       console.error(err);
     } finally {
-      setLoading(false);
       setIsFetching(false);
     }
   };
@@ -219,19 +231,13 @@ export default function ReportsPage() {
         </div>
       )}
 
-      {loading || !data ? (
-        <div className="p-12 text-center text-slate-400 text-xs">
-          Computing financial reports...
+      {/* Background refresh indicator */}
+      {isFetching && (
+        <div className="text-xs text-slate-400 text-right animate-pulse">
+          Refreshing report data...
         </div>
-      ) : (
-        <>
-          {/* Background refresh indicator */}
-          {isFetching && (
-            <div className="text-xs text-slate-400 text-right animate-pulse">
-              Refreshing report data...
-            </div>
-          )}
-          {/* Executive Profit & Loss Summary Card */}
+      )}
+      {/* Executive Profit & Loss Summary Card */}
           <div className="bg-white rounded-2xl border border-slate-200 shadow-xs p-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-100 gap-2">
               <div>
@@ -423,8 +429,6 @@ export default function ReportsPage() {
               </table>
             </div>
           </div>
-        </>
-      )}
     </div>
   );
 }
