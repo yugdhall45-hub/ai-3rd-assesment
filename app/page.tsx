@@ -46,10 +46,10 @@ let hasInitialLoaded = false;
 
 export default function DashboardPage() {
   const [data, setData] = useState<DashboardData>(cachedDashboardData);
-  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(!hasInitialLoaded);
 
   const loadData = async (silent = false) => {
-    if (silent) setIsRefreshing(true);
+    setIsRefreshing(true);
 
     try {
       const today = new Date().toISOString().split("T")[0];

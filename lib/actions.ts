@@ -434,8 +434,14 @@ export async function markInvoicePaid(
 
   const targetDateStr = dateString || new Date().toISOString().split("T")[0];
   const paymentDate = dateString ? new Date(dateString + "T12:00:00") : new Date();
-  const newPaid = inv.paidAmount + amount;
-  const newDue = Math.max(0, inv.total - newPaid);
+  
+  if (inv.dueAmount <= 0) {
+    return inv;
+  }
+
+  const settleAmount = Math.min(amount, inv.dueAmount);
+  const newPaid = inv.paidAmount + settleAmount;
+  const newDue = Math.max(0, inv.dueAmount - settleAmount);
   const newStatus = newDue <= 0.01 ? "PAID" : "PARTIAL";
 
   await prisma.payment.create({
@@ -443,7 +449,7 @@ export async function markInvoicePaid(
       userId: user.userId,
       invoiceId: inv.id,
       customerId: inv.customerId,
-      amount,
+      amount: settleAmount,
       paymentMethod,
       dateString: targetDateStr,
       paymentDate,

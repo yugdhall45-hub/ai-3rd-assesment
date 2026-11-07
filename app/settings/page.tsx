@@ -9,6 +9,7 @@ import {
   Check,
   RefreshCw,
   Save,
+  AlertCircle,
 } from "lucide-react";
 import { getBusinessProfile, updateBusinessProfile } from "@/lib/actions";
 
@@ -20,6 +21,7 @@ export default function SettingsPage() {
   const [loading, setLoading] = useState(!cachedProfileData);
   const [saving, setSaving] = useState(false);
   const [successMsg, setSuccessMsg] = useState("");
+  const [errorMsg, setErrorMsg] = useState("");
 
   const loadProfile = async (silent = false) => {
     if (!silent && !cachedProfileData) setLoading(true);
@@ -43,6 +45,7 @@ export default function SettingsPage() {
     if (!profile) return;
     setSaving(true);
     setSuccessMsg("");
+    setErrorMsg("");
 
     try {
       const payload = {
@@ -64,7 +67,8 @@ export default function SettingsPage() {
       setSuccessMsg("Settings saved successfully!");
       setTimeout(() => setSuccessMsg(""), 3500);
     } catch (err) {
-      alert("Failed to save settings");
+      setErrorMsg("Failed to save settings. Please try again.");
+      setTimeout(() => setErrorMsg(""), 4000);
     } finally {
       setSaving(false);
     }
@@ -96,6 +100,12 @@ export default function SettingsPage() {
           <div className="bg-emerald-50 text-emerald-700 border border-emerald-200 px-3.5 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5">
             <Check className="w-4 h-4" />
             <span>{successMsg}</span>
+          </div>
+        )}
+        {errorMsg && (
+          <div className="bg-rose-50 text-rose-700 border border-rose-200 px-3.5 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5">
+            <AlertCircle className="w-4 h-4" />
+            <span>{errorMsg}</span>
           </div>
         )}
       </div>

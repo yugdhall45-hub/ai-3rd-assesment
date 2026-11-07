@@ -193,8 +193,7 @@ export default function RegisterPage() {
                   type={showPassword ? "text" : "password"}
                   required
                   value={confirmPassword}
-                  onChange={(e) => setPassword(e.target.value)}
-                  onInput={(e: any) => setConfirmPassword(e.target.value)}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder="Re-enter password"
                   className="w-full pl-10 pr-4 py-2.5 bg-slate-900/90 border border-slate-700 rounded-xl text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
                 />

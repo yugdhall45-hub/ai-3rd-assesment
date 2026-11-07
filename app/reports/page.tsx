@@ -33,6 +33,8 @@ export default function ReportsPage() {
   const [data, setData] = useState<any>(() => initialCache?.data || null);
   const [profile, setProfile] = useState<any>(() => initialCache?.profile || { currency: "₹", name: "SmartBazaar Local Mart" });
   const [loading, setLoading] = useState(!initialCache);
+  const [isFetching, setIsFetching] = useState(false); // background refresh indicator
+  const [dateError, setDateError] = useState(""); // date validation error
 
   const currency = profile.currency || "₹";
 
@@ -40,6 +42,7 @@ export default function ReportsPage() {
     const key = `${s}_${e}`;
     const hasCache = Boolean(cachedReportsMap[key]);
     if (!silent && !hasCache) setLoading(true);
+    if (silent) setIsFetching(true);
     try {
       const [rep, prof] = await Promise.all([
         getReports(s, e),
@@ -52,10 +55,17 @@ export default function ReportsPage() {
       console.error(err);
     } finally {
       setLoading(false);
+      setIsFetching(false);
     }
   };
 
   useEffect(() => {
+    // validate date range before fetching
+    if (startDate && endDate && startDate > endDate) {
+      setDateError("Start date cannot be after end date.");
+      return;
+    }
+    setDateError("");
     const key = `${startDate}_${endDate}`;
     loadData(startDate, endDate, Boolean(cachedReportsMap[key]));
   }, [startDate, endDate]);
@@ -68,15 +78,13 @@ export default function ReportsPage() {
     if (preset === "today") {
       s = e;
     } else if (preset === "7days") {
-      const d = new Date();
+      const d = new Date(today); // new copy — do NOT mutate `today`
       d.setDate(d.getDate() - 6);
       s = formatDate(d);
     } else if (preset === "month") {
-      const d = new Date(today.getFullYear(), today.getMonth(), 1);
-      s = formatDate(d);
+      s = formatDate(new Date(today.getFullYear(), today.getMonth(), 1));
     } else if (preset === "year") {
-      const d = new Date(today.getFullYear(), 0, 1);
-      s = formatDate(d);
+      s = formatDate(new Date(today.getFullYear(), 0, 1));
     }
 
     setStartDate(s);
@@ -165,7 +173,7 @@ export default function ReportsPage() {
           </div>
 
           {/* Custom Date Pickers */}
-          <div className="flex items-center gap-1.5 bg-white border border-slate-200 px-2 py-1 rounded-xl text-xs">
+          <div className={`flex items-center gap-1.5 bg-white border px-2 py-1 rounded-xl text-xs ${dateError ? "border-rose-400" : "border-slate-200"}`}>
             <input
               type="date"
               value={startDate}
@@ -180,6 +188,9 @@ export default function ReportsPage() {
               className="font-semibold text-slate-700 bg-transparent focus:outline-none"
             />
           </div>
+          {dateError && (
+            <span className="text-xs text-rose-600 font-semibold">{dateError}</span>
+          )}
 
           <button
             type="button"
@@ -201,12 +212,25 @@ export default function ReportsPage() {
         </div>
       </div>
 
+      {/* Date validation error */}
+      {dateError && (
+        <div className="p-3 bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold rounded-xl">
+          ⚠️ {dateError}
+        </div>
+      )}
+
       {loading || !data ? (
         <div className="p-12 text-center text-slate-400 text-xs">
           Computing financial reports...
         </div>
       ) : (
         <>
+          {/* Background refresh indicator */}
+          {isFetching && (
+            <div className="text-xs text-slate-400 text-right animate-pulse">
+              Refreshing report data...
+            </div>
+          )}
           {/* Executive Profit & Loss Summary Card */}
           <div className="bg-white rounded-2xl border border-slate-200 shadow-xs p-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-100 gap-2">

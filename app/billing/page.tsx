@@ -503,7 +503,7 @@ export default function BillingPage() {
                           value={item.quantity}
                           onChange={(e) => {
                             const val = parseInt(e.target.value, 10);
-                            if (!isNaN(val)) updateQuantity(index, val);
+                            if (!isNaN(val) && val > 0) updateQuantity(index, val);
                           }}
                           className="w-10 text-center font-bold text-slate-800 bg-white border border-slate-200 rounded text-xs py-0.5 focus:outline-none focus:ring-1 focus:ring-emerald-500"
                         />

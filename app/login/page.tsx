@@ -9,7 +9,8 @@ import { loginAction } from "@/lib/auth-actions";
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const fromUrl = searchParams.get("from") || "/";
+  const rawFrom = searchParams.get("from") || "/";
+  const fromUrl = rawFrom.startsWith("/") && !rawFrom.startsWith("//") ? rawFrom : "/";
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
