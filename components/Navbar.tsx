@@ -49,7 +49,7 @@ export default function Navbar({
           <button
             type="button"
             onClick={onToggleMobileMenu}
-            className="md:hidden p-2 rounded-xl text-slate-300 hover:text-white hover:bg-slate-800 transition border border-slate-700 shrink-0"
+            className="lg:hidden p-2 rounded-xl text-slate-300 hover:text-white hover:bg-slate-800 transition border border-slate-700 shrink-0"
             title="Toggle Menu"
             aria-label="Toggle navigation menu"
           >
@@ -103,7 +103,7 @@ export default function Navbar({
         </Link>
 
         {user && (
-          <form action={logoutAction} className="md:hidden">
+          <form action={logoutAction} className="lg:hidden">
             <button
               type="submit"
               title="Logout"

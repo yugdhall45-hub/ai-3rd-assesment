@@ -111,7 +111,7 @@ export default function Sidebar({
         {onClose && (
           <button
             onClick={onClose}
-            className="md:hidden p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition"
+            className="lg:hidden p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition"
             title="Close Menu"
           >
             <X className="w-5 h-5" />
@@ -185,14 +185,14 @@ export default function Sidebar({
 
   return (
     <>
-      {/* Desktop Persistent Sidebar */}
-      <aside className="hidden md:flex flex-col w-64 bg-slate-900 border-r border-slate-800 shrink-0 sticky top-0 h-screen no-print z-20">
+      {/* Desktop Persistent Sidebar (Only visible on lg screens >= 1024px) */}
+      <aside className="hidden lg:flex flex-col w-64 bg-slate-900 border-r border-slate-800 shrink-0 sticky top-0 h-screen no-print z-20">
         {sidebarContent}
       </aside>
 
-      {/* Mobile Off-Canvas Drawer */}
+      {/* Mobile Off-Canvas Drawer (Slides in on mobile and tablet when opened) */}
       {mobileOpen && (
-        <div className="md:hidden fixed inset-0 z-50 flex">
+        <div className="lg:hidden fixed inset-0 z-50 flex">
           <div
             className="fixed inset-0 bg-slate-950/70 backdrop-blur-xs transition-opacity"
             onClick={onClose}
