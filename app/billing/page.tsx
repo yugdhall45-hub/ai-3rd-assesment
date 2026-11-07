@@ -14,6 +14,7 @@ import {
   CreditCard,
   RefreshCw,
   X,
+  Calendar,
 } from "lucide-react";
 import {
   getProducts,
@@ -53,6 +54,9 @@ export default function BillingPage() {
   const [applyTax, setApplyTax] = useState<boolean>(true);
   const [paymentMethod, setPaymentMethod] = useState<"CASH" | "UPI" | "CARD" | "CREDIT">("CASH");
   const [paidAmount, setPaidAmount] = useState<string>("");
+  const [invoiceDate, setInvoiceDate] = useState<string>(
+    new Date().toISOString().split("T")[0]
+  );
   const [notes, setNotes] = useState<string>("");
 
   // Modals
@@ -69,6 +73,9 @@ export default function BillingPage() {
   const [collectModalInv, setCollectModalInv] = useState<any>(null);
   const [collectAmount, setCollectAmount] = useState<string>("");
   const [collectMethod, setCollectMethod] = useState("CASH");
+  const [collectDate, setCollectDate] = useState<string>(
+    new Date().toISOString().split("T")[0]
+  );
 
   // Custom manual item entry
   const [customItemName, setCustomItemName] = useState("");
@@ -103,7 +110,8 @@ export default function BillingPage() {
   // Cart Calculations
   const subtotal = cart.reduce((sum, item) => sum + item.total, 0);
   const taxRate = applyTax ? (profile.taxRate || 0) : 0;
-  const taxableAmount = Math.max(0, subtotal - discountAmount);
+  const effectiveDiscount = Math.min(Math.max(0, discountAmount || 0), subtotal);
+  const taxableAmount = Math.max(0, subtotal - effectiveDiscount);
   const taxAmount = (taxableAmount * taxRate) / 100;
   const grandTotal = Math.round(taxableAmount + taxAmount);
 
@@ -229,6 +237,12 @@ export default function BillingPage() {
     }
 
     const paidNum = parseFloat(paidAmount) || 0;
+    const isCreditOrDue = paymentMethod === "CREDIT" || paidNum < grandTotal;
+
+    if (isCreditOrDue && !selectedCustomerId) {
+      alert("Khata / Credit bills require selecting or adding a Customer so that pending dues can be recorded in their Khata account.");
+      return;
+    }
 
     try {
       const inv = await createInvoice({
@@ -237,22 +251,33 @@ export default function BillingPage() {
         customerPhone: customerPhone.trim() || undefined,
         items: cart,
         subtotal,
-        discount: discountAmount,
+        discount: effectiveDiscount,
         tax: taxAmount,
         total: grandTotal,
         paidAmount: paidNum,
         paymentMethod,
+        dateString: invoiceDate,
         notes: notes.trim() || undefined,
       });
 
-      // Refresh list
-      await loadData();
+      // Optimistic local state update for instant UI feedback
+      setInvoices((prev) => [inv, ...prev]);
+      setProducts((prev) =>
+        prev.map((p) => {
+          const cartItem = cart.find((c) => c.productId === p.id);
+          return cartItem ? { ...p, stock: Math.max(0, p.stock - cartItem.quantity) } : p;
+        })
+      );
+
       resetForm();
 
       if (mode === "thermal" || mode === "a4") {
         setCurrentInvoiceForPrint(inv);
         setPrintMode(mode);
       }
+
+      // Sync data in background
+      loadData();
     } catch (err) {
       console.error(err);
       alert("Failed to save bill. Please try again.");
@@ -266,7 +291,7 @@ export default function BillingPage() {
     if (isNaN(amount) || amount <= 0) return;
 
     try {
-      await markInvoicePaid(collectModalInv.id, amount, collectMethod);
+      await markInvoicePaid(collectModalInv.id, amount, collectMethod, collectDate);
       setCollectModalInv(null);
       setCollectAmount("");
       await loadData();
@@ -349,8 +374,14 @@ export default function BillingPage() {
                       <div className="font-semibold text-slate-900 text-xs line-clamp-1 group-hover:text-emerald-700">
                         {prod.name}
                       </div>
-                      <div className="text-[11px] text-slate-400 mt-0.5">
-                        Stock: {prod.stock} {prod.unit}
+                      <div className="text-[11px] mt-0.5">
+                        {prod.stock <= 0 ? (
+                          <span className="text-rose-600 font-semibold">Out of Stock</span>
+                        ) : prod.stock <= 5 ? (
+                          <span className="text-amber-600 font-medium">Low: {prod.stock} {prod.unit}</span>
+                        ) : (
+                          <span className="text-slate-400">Stock: {prod.stock} {prod.unit}</span>
+                        )}
                       </div>
                     </div>
                     <div className="mt-2 flex items-center justify-between text-xs">
@@ -428,21 +459,28 @@ export default function BillingPage() {
                       </div>
 
                       {/* Quantity Stepper */}
-                      <div className="flex items-center gap-1.5 bg-slate-100 rounded-lg p-1 border border-slate-200">
+                      <div className="flex items-center gap-1 bg-slate-100 rounded-lg p-1 border border-slate-200">
                         <button
                           type="button"
                           onClick={() => updateQuantity(index, item.quantity - 1)}
-                          className="w-6 h-6 flex items-center justify-center font-bold text-slate-600 hover:bg-white rounded"
+                          className="w-6 h-6 flex items-center justify-center font-bold text-slate-600 hover:bg-white rounded transition"
                         >
                           −
                         </button>
-                        <span className="w-8 text-center font-bold text-slate-800">
-                          {item.quantity}
-                        </span>
+                        <input
+                          type="number"
+                          min="1"
+                          value={item.quantity}
+                          onChange={(e) => {
+                            const val = parseInt(e.target.value, 10);
+                            if (!isNaN(val)) updateQuantity(index, val);
+                          }}
+                          className="w-10 text-center font-bold text-slate-800 bg-white border border-slate-200 rounded text-xs py-0.5 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                        />
                         <button
                           type="button"
                           onClick={() => updateQuantity(index, item.quantity + 1)}
-                          className="w-6 h-6 flex items-center justify-center font-bold text-slate-600 hover:bg-white rounded"
+                          className="w-6 h-6 flex items-center justify-center font-bold text-slate-600 hover:bg-white rounded transition"
                         >
                           +
                         </button>
@@ -469,8 +507,22 @@ export default function BillingPage() {
 
           {/* Right Side: Customer, Discounts, Totals & Checkout (5 cols) */}
           <div className="lg:col-span-5 space-y-4">
-            {/* Customer Picker */}
+            {/* Customer Picker & Bill Date */}
             <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs space-y-3">
+              {/* Bill Date Selector */}
+              <div className="flex items-center justify-between gap-2 pb-2 border-b border-slate-100">
+                <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider flex items-center gap-1">
+                  <Calendar className="w-3.5 h-3.5 text-emerald-600" /> Bill Date
+                </span>
+                <input
+                  type="date"
+                  value={invoiceDate}
+                  onChange={(e) => setInvoiceDate(e.target.value)}
+                  title="Choose past date to backdate this bill"
+                  className="px-2.5 py-1 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                />
+              </div>
+
               <div className="flex items-center justify-between">
                 <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider flex items-center gap-1">
                   <User className="w-3.5 h-3.5" /> Customer Details
@@ -867,6 +919,18 @@ export default function BillingPage() {
                   value={collectAmount}
                   onChange={(e) => setCollectAmount(e.target.value)}
                   className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  Payment Date
+                </label>
+                <input
+                  type="date"
+                  value={collectDate}
+                  onChange={(e) => setCollectDate(e.target.value)}
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:ring-2 focus:ring-emerald-500"
                 />
               </div>
 

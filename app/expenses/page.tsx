@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import {
   ArrowDownCircle,
   ArrowUpCircle,
@@ -45,12 +46,33 @@ const INCOME_SOURCES = [
   "Miscellaneous Income",
 ];
 
-export default function ExpensesPage() {
+function ExpensesContent() {
+  const searchParams = useSearchParams();
+  const tabParam = searchParams.get("tab");
+  const isNewParam = searchParams.get("new");
+  const titleInputRef = useRef<HTMLInputElement>(null);
+
   const [activeTab, setActiveTab] = useState<"expense" | "income">("expense");
   const [expenses, setExpenses] = useState<any[]>([]);
   const [incomes, setIncomes] = useState<any[]>([]);
   const [profile, setProfile] = useState<any>({ currency: "₹" });
   const [loading, setLoading] = useState(true);
+
+  // Sync query parameters (?tab=expense|income&new=true)
+  useEffect(() => {
+    if (tabParam === "income") {
+      setActiveTab("income");
+    } else if (tabParam === "expense") {
+      setActiveTab("expense");
+    }
+
+    if (isNewParam === "true") {
+      setTimeout(() => {
+        titleInputRef.current?.focus();
+        titleInputRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+      }, 150);
+    }
+  }, [tabParam, isNewParam]);
 
   // Form State
   const [title, setTitle] = useState("");
@@ -278,6 +300,7 @@ export default function ExpensesPage() {
                 {activeTab === "expense" ? "Expense Description *" : "Income Description *"}
               </label>
               <input
+                ref={titleInputRef}
                 type="text"
                 required
                 value={title}
@@ -573,6 +596,20 @@ export default function ExpensesPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function ExpensesPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="p-8 text-center text-slate-400 text-xs">
+          Loading expenses & incomes...
+        </div>
+      }
+    >
+      <ExpensesContent />
+    </Suspense>
   );
 }
 

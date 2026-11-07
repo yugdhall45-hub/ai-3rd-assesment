@@ -14,6 +14,7 @@ import {
   Store,
   LogOut,
   UserCheck,
+  X,
 } from "lucide-react";
 import { logoutAction } from "@/lib/auth-actions";
 
@@ -24,12 +25,16 @@ interface SidebarProps {
     name: string;
     email: string;
   };
+  mobileOpen?: boolean;
+  onClose?: () => void;
 }
 
 export default function Sidebar({
   businessName = "SmartBazaar Mart",
   currency = "₹",
   user,
+  mobileOpen = false,
+  onClose,
 }: SidebarProps) {
   const pathname = usePathname();
 
@@ -53,26 +58,38 @@ export default function Sidebar({
         .toUpperCase()
     : "ST";
 
-  return (
-    <aside className="w-64 bg-slate-900 text-slate-200 flex flex-col border-r border-slate-800 no-print flex-shrink-0 min-h-screen">
+  const sidebarContent = (
+    <div className="flex flex-col h-full bg-slate-900 text-slate-200">
       {/* Brand Header */}
-      <div className="p-5 border-b border-slate-800/80 flex items-center gap-3">
-        <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-500 flex items-center justify-center text-white shadow-md shadow-emerald-500/20">
-          <Store className="w-5 h-5" />
+      <div className="p-4 sm:p-5 border-b border-slate-800/80 flex items-center justify-between">
+        <div className="flex items-center gap-3 overflow-hidden">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-500 flex items-center justify-center text-white shadow-md shadow-emerald-500/20 shrink-0">
+            <Store className="w-5 h-5" />
+          </div>
+          <div className="overflow-hidden">
+            <h1 className="font-bold text-white text-sm sm:text-base tracking-tight truncate">
+              {businessName}
+            </h1>
+            <p className="text-[11px] text-emerald-400 font-medium flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+              Billing & Daybook POS
+            </p>
+          </div>
         </div>
-        <div className="overflow-hidden">
-          <h1 className="font-bold text-white text-base tracking-tight truncate">
-            {businessName}
-          </h1>
-          <p className="text-xs text-emerald-400 font-medium flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-            Billing & Daybook POS
-          </p>
-        </div>
+
+        {onClose && (
+          <button
+            onClick={onClose}
+            className="md:hidden p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition"
+            title="Close Menu"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        )}
       </div>
 
       {/* Navigation Links */}
-      <nav className="flex-1 p-3 space-y-1.5 overflow-y-auto">
+      <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
         <div className="px-3 py-1.5 text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
           Main Menu
         </div>
@@ -83,7 +100,8 @@ export default function Sidebar({
             <Link
               key={item.href}
               href={item.href}
-              className={`flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-medium transition-all ${
+              onClick={onClose}
+              className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-medium transition-all ${
                 isActive
                   ? "bg-emerald-600 text-white shadow-sm shadow-emerald-600/30"
                   : "text-slate-300 hover:text-white hover:bg-slate-800/80"
@@ -123,12 +141,38 @@ export default function Sidebar({
         )}
 
         <div className="flex items-center justify-between px-2 text-[11px] text-slate-500">
-          <span>Currency: <strong className="text-emerald-400">{currency}</strong></span>
+          <span>
+            Currency: <strong className="text-emerald-400">{currency}</strong>
+          </span>
           <span className="flex items-center gap-1 text-slate-400">
             <UserCheck className="w-3 h-3 text-emerald-500" /> Private Store
           </span>
         </div>
       </div>
-    </aside>
+    </div>
+  );
+
+  return (
+    <>
+      {/* Desktop Persistent Sidebar */}
+      <aside className="hidden md:flex w-64 flex-col border-r border-slate-800 no-print flex-shrink-0 h-screen">
+        {sidebarContent}
+      </aside>
+
+      {/* Mobile Slide-over Drawer */}
+      {mobileOpen && (
+        <div className="fixed inset-0 z-50 md:hidden no-print">
+          {/* Backdrop overlay */}
+          <div
+            className="fixed inset-0 bg-slate-950/70 backdrop-blur-xs transition-opacity"
+            onClick={onClose}
+          />
+          {/* Drawer container */}
+          <div className="relative w-72 max-w-[85vw] h-full shadow-2xl z-10 animate-in slide-in-from-left duration-200">
+            {sidebarContent}
+          </div>
+        </div>
+      )}
+    </>
   );
 }

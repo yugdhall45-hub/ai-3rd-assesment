@@ -1,26 +1,64 @@
 import { PrismaClient } from "@prisma/client";
+import bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient();
 
-function getTodayString(offsetDays = 0): string {
+function getDayInfo(offsetDays = 0) {
   const d = new Date();
   d.setDate(d.getDate() - offsetDays);
-  return d.toISOString().split("T")[0];
+  d.setHours(12, 0, 0, 0);
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return {
+    date: d,
+    dateString: `${year}-${month}-${day}`,
+  };
 }
 
 async function main() {
-  console.log("Seeding database...");
+  console.log("Seeding database with demo business account & 14-day historical records...");
 
-  // 1. Business Profile
-  await prisma.businessProfile.upsert({
-    where: { id: "default" },
-    update: {},
+  // 1. Create or get Demo User
+  const demoEmail = "demo@smartbazaar.local";
+  const hashedPassword = await bcrypt.hash("smart123", 10);
+
+  const demoUser = await prisma.user.upsert({
+    where: { email: demoEmail },
+    update: {
+      name: "SmartBazaar Store Manager",
+      password: hashedPassword,
+    },
     create: {
-      id: "default",
+      email: demoEmail,
+      name: "SmartBazaar Store Manager",
+      password: hashedPassword,
+    },
+  });
+
+  const userId = demoUser.id;
+  console.log(`Demo User ID: ${userId} (${demoEmail})`);
+
+  // 2. Business Profile
+  await prisma.businessProfile.upsert({
+    where: { userId },
+    update: {
       name: "SmartBazaar Local Mart",
       tagline: "Your Trusted Neighborhood Store & Daily Needs",
       phone: "+91 98765 43210",
-      email: "contact@smartbazaar.local",
+      email: demoEmail,
+      address: "Shop #14, Sunrise Plaza, MG Road, City Center",
+      taxId: "GSTIN: 27AABCS1429B1Z8",
+      currency: "₹",
+      taxRate: 5.0,
+      receiptFooter: "Thank you for shopping with us! Fresh groceries every day.",
+    },
+    create: {
+      userId,
+      name: "SmartBazaar Local Mart",
+      tagline: "Your Trusted Neighborhood Store & Daily Needs",
+      phone: "+91 98765 43210",
+      email: demoEmail,
       address: "Shop #14, Sunrise Plaza, MG Road, City Center",
       taxId: "GSTIN: 27AABCS1429B1Z8",
       currency: "₹",
@@ -29,7 +67,7 @@ async function main() {
     },
   });
 
-  // 2. Products
+  // 3. Products
   const products = [
     { name: "Basmati Rice Premium 5kg", sku: "RIC-5KG", category: "Grains & Pulses", costPrice: 380, sellingPrice: 460, stock: 45, unit: "bag" },
     { name: "Fortune Sunflower Oil 1L", sku: "OIL-1L", category: "Oils & Ghee", costPrice: 125, sellingPrice: 155, stock: 60, unit: "pouch" },
@@ -47,279 +85,252 @@ async function main() {
 
   const createdProducts: Record<string, string> = {};
   for (const p of products) {
-    const existing = await prisma.product.findFirst({ where: { sku: p.sku } });
+    const existing = await prisma.product.findFirst({ where: { userId, sku: p.sku } });
     if (!existing) {
-      const prod = await prisma.product.create({ data: p });
+      const prod = await prisma.product.create({
+        data: {
+          userId,
+          ...p,
+        },
+      });
       createdProducts[prod.name] = prod.id;
     } else {
       createdProducts[existing.name] = existing.id;
     }
   }
 
-  // 3. Customers
+  // 4. Customers
   const customers = [
     { name: "Rajesh Kumar Sharma", phone: "9823011223", address: "Flat 402, Green Valley Apts", notes: "Regular customer, monthly Khata" },
     { name: "Priya Sundaram", phone: "9845199887", address: "House #12, 3rd Cross, Malleshwaram", notes: "Prefers UPI payments" },
     { name: "Amitabh Verma", phone: "9711044556", address: "Verma Clinic, Main Road", notes: "Doctor nearby, purchases sanitizers & stationery" },
     { name: "Sunita Deshmukh", phone: "9920133445", address: "B-10, Railway Colony", notes: "Weekly credit customer" },
+    { name: "Vikram Malhotra", phone: "9811223344", address: "Shop 7, City Arcade", notes: "Wholesale tea customer" },
   ];
 
   const createdCustomers: Record<string, string> = {};
   for (const c of customers) {
-    const existing = await prisma.customer.findFirst({ where: { phone: c.phone } });
+    const existing = await prisma.customer.findFirst({ where: { userId, phone: c.phone } });
     if (!existing) {
-      const cust = await prisma.customer.create({ data: c });
+      const cust = await prisma.customer.create({
+        data: {
+          userId,
+          ...c,
+        },
+      });
       createdCustomers[cust.name] = cust.id;
     } else {
       createdCustomers[existing.name] = existing.id;
     }
   }
 
-  // 4. Invoices & Sales
-  const today = getTodayString(0);
-  const yesterday = getTodayString(1);
-  const twoDaysAgo = getTodayString(2);
+  // 5. Invoices & Sales across Days (Day 0, 1, 2, 3, 5, 7, 10, 14)
+  const daysOffsets = [0, 1, 2, 3, 5, 7, 10, 14];
 
-  const existingInvoices = await prisma.invoice.count();
-  if (existingInvoices === 0) {
-    // Bill 1 - Paid Cash Today
-    const inv1 = await prisma.invoice.create({
-      data: {
-        invoiceNumber: "INV-2026-001",
-        date: new Date(),
-        dateString: today,
-        customerName: "Walk-in Customer",
-        subtotal: 1040,
-        discount: 40,
-        tax: 50,
-        total: 1050,
-        paidAmount: 1050,
-        dueAmount: 0,
-        paymentStatus: "PAID",
-        paymentMethod: "CASH",
-        items: {
-          create: [
-            { productName: "Basmati Rice Premium 5kg", quantity: 1, unitPrice: 460, total: 460 },
-            { productName: "Fortune Sunflower Oil 1L", quantity: 2, unitPrice: 155, total: 310 },
-            { productName: "Tata Gold Tea Leaves 500g", quantity: 1, unitPrice: 260, total: 260 },
-          ],
-        },
-        payments: {
-          create: {
-            amount: 1050,
-            paymentMethod: "CASH",
-            dateString: today,
-            notes: "Counter Cash Sale",
-          },
-        },
-      },
+  for (const offset of daysOffsets) {
+    const { date, dateString } = getDayInfo(offset);
+
+    const existingCount = await prisma.invoice.count({
+      where: { userId, dateString },
     });
 
-    // Bill 2 - Paid UPI Today
-    await prisma.invoice.create({
-      data: {
-        invoiceNumber: "INV-2026-002",
-        date: new Date(),
-        dateString: today,
-        customerId: createdCustomers["Priya Sundaram"],
-        customerName: "Priya Sundaram",
-        customerPhone: "9845199887",
-        subtotal: 650,
-        discount: 20,
-        tax: 31.5,
-        total: 661.5,
-        paidAmount: 661.5,
-        dueAmount: 0,
-        paymentStatus: "PAID",
-        paymentMethod: "UPI",
-        items: {
-          create: [
-            { productName: "Aashirvaad Shudh Chakki Atta 10kg", quantity: 1, unitPrice: 420, total: 420 },
-            { productName: "Madhur Pure & Hygienic Sugar 1kg", quantity: 2, unitPrice: 50, total: 100 },
-            { productName: "Colgate Strong Teeth 200g", quantity: 1, unitPrice: 130, total: 130 },
-          ],
-        },
-        payments: {
-          create: {
-            customerId: createdCustomers["Priya Sundaram"],
-            amount: 661.5,
-            paymentMethod: "UPI",
-            dateString: today,
-            notes: "Google Pay UPI payment",
+    if (existingCount === 0) {
+      // Bill 1: General Counter Sale (CASH)
+      const b1InvNum = `INV-${date.getFullYear()}-D${offset}1`;
+      await prisma.invoice.create({
+        data: {
+          userId,
+          invoiceNumber: b1InvNum,
+          date,
+          dateString,
+          customerName: "Walk-in Customer",
+          subtotal: 1040,
+          discount: 40,
+          tax: 50,
+          total: 1050,
+          paidAmount: 1050,
+          dueAmount: 0,
+          paymentStatus: "PAID",
+          paymentMethod: "CASH",
+          items: {
+            create: [
+              { productName: "Basmati Rice Premium 5kg", quantity: 1, unitPrice: 460, total: 460 },
+              { productName: "Fortune Sunflower Oil 1L", quantity: 2, unitPrice: 155, total: 310 },
+              { productName: "Tata Gold Tea Leaves 500g", quantity: 1, unitPrice: 260, total: 260 },
+            ],
+          },
+          payments: {
+            create: {
+              userId,
+              amount: 1050,
+              paymentMethod: "CASH",
+              dateString,
+              paymentDate: date,
+              notes: "Counter Cash Checkout",
+            },
           },
         },
-      },
-    });
+      });
 
-    // Bill 3 - Credit / Due Bill Today for Rajesh Kumar (Khata)
-    await prisma.invoice.create({
-      data: {
-        invoiceNumber: "INV-2026-003",
-        date: new Date(),
-        dateString: today,
-        customerId: createdCustomers["Rajesh Kumar Sharma"],
-        customerName: "Rajesh Kumar Sharma",
-        customerPhone: "9823011223",
-        subtotal: 1220,
-        discount: 20,
-        tax: 60,
-        total: 1260,
-        paidAmount: 260,
-        dueAmount: 1000,
-        paymentStatus: "PARTIAL",
-        paymentMethod: "CREDIT",
-        notes: "Paid ₹260 cash, remaining ₹1000 added to monthly Khata",
-        items: {
-          create: [
-            { productName: "Surf Excel Easy Wash Detergent 1kg", quantity: 2, unitPrice: 150, total: 300 },
-            { productName: "Dettol Original Soap 125g (Buy 3 Get 1)", quantity: 2, unitPrice: 165, total: 330 },
-            { productName: "Basmati Rice Premium 5kg", quantity: 1, unitPrice: 460, total: 460 },
-            { productName: "Classmate Notebook Spiral A4", quantity: 1, unitPrice: 95, total: 95 },
-          ],
+      // Bill 2: Customer Sale (UPI)
+      const b2InvNum = `INV-${date.getFullYear()}-D${offset}2`;
+      await prisma.invoice.create({
+        data: {
+          userId,
+          invoiceNumber: b2InvNum,
+          date,
+          dateString,
+          customerId: createdCustomers["Priya Sundaram"],
+          customerName: "Priya Sundaram",
+          customerPhone: "9845199887",
+          subtotal: 650,
+          discount: 20,
+          tax: 31.5,
+          total: 661.5,
+          paidAmount: 661.5,
+          dueAmount: 0,
+          paymentStatus: "PAID",
+          paymentMethod: "UPI",
+          items: {
+            create: [
+              { productName: "Aashirvaad Shudh Chakki Atta 10kg", quantity: 1, unitPrice: 420, total: 420 },
+              { productName: "Madhur Pure & Hygienic Sugar 1kg", quantity: 2, unitPrice: 50, total: 100 },
+              { productName: "Colgate Strong Teeth 200g", quantity: 1, unitPrice: 130, total: 130 },
+            ],
+          },
+          payments: {
+            create: {
+              userId,
+              customerId: createdCustomers["Priya Sundaram"],
+              amount: 661.5,
+              paymentMethod: "UPI",
+              dateString,
+              paymentDate: date,
+              notes: "Google Pay QR payment",
+            },
+          },
         },
-        payments: {
-          create: {
+      });
+
+      // Bill 3: Khata Partial / Due Sale on selected days
+      if (offset % 2 === 0) {
+        const b3InvNum = `INV-${date.getFullYear()}-D${offset}3`;
+        await prisma.invoice.create({
+          data: {
+            userId,
+            invoiceNumber: b3InvNum,
+            date,
+            dateString,
             customerId: createdCustomers["Rajesh Kumar Sharma"],
-            amount: 260,
+            customerName: "Rajesh Kumar Sharma",
+            customerPhone: "9823011223",
+            subtotal: 1220,
+            discount: 20,
+            tax: 60,
+            total: 1260,
+            paidAmount: 260,
+            dueAmount: 1000,
+            paymentStatus: "PARTIAL",
+            paymentMethod: "CREDIT",
+            notes: `Paid ₹260 cash, ₹1000 balance added to monthly Khata`,
+            items: {
+              create: [
+                { productName: "Surf Excel Easy Wash Detergent 1kg", quantity: 2, unitPrice: 150, total: 300 },
+                { productName: "Dettol Original Soap 125g (Buy 3 Get 1)", quantity: 2, unitPrice: 165, total: 330 },
+                { productName: "Basmati Rice Premium 5kg", quantity: 1, unitPrice: 460, total: 460 },
+                { productName: "Classmate Notebook Spiral A4", quantity: 1, unitPrice: 95, total: 95 },
+              ],
+            },
+            payments: {
+              create: {
+                userId,
+                customerId: createdCustomers["Rajesh Kumar Sharma"],
+                amount: 260,
+                paymentMethod: "CASH",
+                dateString,
+                paymentDate: date,
+                notes: "Cash advance payment",
+              },
+            },
+          },
+        });
+      }
+
+      // Past Day Expenses
+      await prisma.expense.createMany({
+        data: [
+          {
+            userId,
+            title: `Daily Tea & Snacks for Shop Staff`,
+            category: "Tea & Refreshments",
+            amount: 80,
             paymentMethod: "CASH",
-            dateString: today,
-            notes: "Partial payment at counter",
+            date,
+            dateString,
+            reference: `Voucher #T${offset}`,
+            notes: "Local tea vendor",
+          },
+          {
+            userId,
+            title: `Shop Maintenance & Cleaning`,
+            category: "Repairs & Maintenance",
+            amount: 120,
+            paymentMethod: "CASH",
+            date,
+            dateString,
+            reference: "Cash Memo",
+            notes: "Cleaning materials",
+          },
+        ],
+      });
+
+      // Past Day Other Income
+      if (offset === 0 || offset === 3 || offset === 7) {
+        await prisma.otherIncome.create({
+          data: {
+            userId,
+            title: "Empty Packing Boxes Scrap Sale",
+            source: "Scrap & Waste Sale",
+            amount: 280,
+            paymentMethod: "CASH",
+            date,
+            dateString,
+            notes: "28kg corrugated cardboard sold",
+          },
+        });
+      }
+
+      // Past Daybook Register entry
+      const cashIn = 1050 + (offset % 2 === 0 ? 260 : 0) + (offset === 0 || offset === 3 || offset === 7 ? 280 : 0);
+      const cashOut = 80 + 120; // 200
+      const openCash = 2000;
+      const expCash = openCash + cashIn - cashOut;
+
+      await prisma.daybookRegister.upsert({
+        where: {
+          userId_dateString: {
+            userId,
+            dateString,
           },
         },
-      },
-    });
-
-    // Bill 4 - Yesterday's Bill
-    await prisma.invoice.create({
-      data: {
-        invoiceNumber: "INV-2026-000",
-        date: new Date(Date.now() - 86400000),
-        dateString: yesterday,
-        customerName: "Walk-in Customer",
-        subtotal: 890,
-        discount: 0,
-        tax: 44.5,
-        total: 934.5,
-        paidAmount: 934.5,
-        dueAmount: 0,
-        paymentStatus: "PAID",
-        paymentMethod: "CASH",
-        items: {
-          create: [
-            { productName: "Aashirvaad Shudh Chakki Atta 10kg", quantity: 1, unitPrice: 420, total: 420 },
-            { productName: "Fortune Sunflower Oil 1L", quantity: 2, unitPrice: 155, total: 310 },
-            { productName: "Parle-G Gold Biscuits (Pack of 6)", quantity: 2, unitPrice: 60, total: 120 },
-          ],
+        update: {},
+        create: {
+          userId,
+          dateString,
+          openingCash: openCash,
+          cashInflow: cashIn,
+          cashOutflow: cashOut,
+          expectedCash: expCash,
+          actualCash: expCash,
+          difference: 0,
+          notes: offset === 0 ? "Drawer balanced for today" : `Daybook closed and verified for ${dateString}`,
+          isClosed: offset !== 0,
         },
-        payments: {
-          create: {
-            amount: 934.5,
-            paymentMethod: "CASH",
-            dateString: yesterday,
-            notes: "Cash counter sale",
-          },
-        },
-      },
-    });
+      });
+    }
   }
 
-  // 5. Daily Expenses
-  const existingExpenses = await prisma.expense.count();
-  if (existingExpenses === 0) {
-    await prisma.expense.createMany({
-      data: [
-        {
-          title: "Daily Morning Tea & Snacks for Staff",
-          category: "Tea & Refreshments",
-          amount: 80,
-          paymentMethod: "CASH",
-          dateString: today,
-          reference: "Voucher #T01",
-          notes: "Chai stall monthly ledger payment",
-        },
-        {
-          title: "Cleaning Supplies & Garbage Disposal",
-          category: "Maintenance",
-          amount: 150,
-          paymentMethod: "CASH",
-          dateString: today,
-          reference: "Cash memo",
-          notes: "Broom and disinfectant liquid",
-        },
-        {
-          title: "Electricity Bill (Shop Counter)",
-          category: "Utilities",
-          amount: 1450,
-          paymentMethod: "UPI",
-          dateString: today,
-          reference: "EB-OCT-2026",
-          notes: "Paid via PhonePe QR",
-        },
-        {
-          title: "Tempo Freight Charges for Stock Delivery",
-          category: "Transportation",
-          amount: 450,
-          paymentMethod: "CASH",
-          dateString: yesterday,
-          reference: "LR-9921",
-          notes: "Wholesale grain market delivery",
-        },
-        {
-          title: "Wholesale Atta & Oil Restocking",
-          category: "Inventory",
-          amount: 6200,
-          paymentMethod: "BANK",
-          dateString: yesterday,
-          reference: "PO-7781",
-          notes: "Transferred to wholesale distributor",
-        },
-      ],
-    });
-  }
-
-  // 6. Other Income
-  const existingIncome = await prisma.otherIncome.count();
-  if (existingIncome === 0) {
-    await prisma.otherIncome.createMany({
-      data: [
-        {
-          title: "Empty Packing Cardboard & Plastic Scrap Sale",
-          source: "Scrap & Waste Sale",
-          amount: 320,
-          paymentMethod: "CASH",
-          dateString: today,
-          notes: "Sold 32kg corrugated boxes to raddiwala",
-        },
-        {
-          title: "Courier Drop Point Handling Commission",
-          source: "Commission",
-          amount: 250,
-          paymentMethod: "UPI",
-          dateString: today,
-          notes: "Weekly parcel dispatch commission",
-        },
-      ],
-    });
-  }
-
-  // 7. Daybook for Today
-  await prisma.daybookRegister.upsert({
-    where: { dateString: today },
-    update: {},
-    create: {
-      dateString: today,
-      openingCash: 2500,
-      cashInflow: 1050 + 260 + 320, // Inv1 cash (1050) + Inv3 cash (260) + scrap cash (320) = 1630
-      cashOutflow: 80 + 150,        // Tea (80) + Cleaning (150) = 230
-      expectedCash: 2500 + 1630 - 230, // 3900
-      actualCash: 3900,
-      difference: 0,
-      notes: "Drawer balanced cleanly at afternoon check",
-      isClosed: false,
-    },
-  });
-
-  console.log("Seeding completed successfully!");
+  console.log("Seeding completed successfully! Login with demo@smartbazaar.local / smart123");
 }
 
 main()
@@ -330,4 +341,3 @@ main()
   .finally(async () => {
     await prisma.$disconnect();
   });
-

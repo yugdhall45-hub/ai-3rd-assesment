@@ -1,6 +1,7 @@
 import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
 import bcrypt from "bcryptjs";
+import { cache } from "react";
 import { prisma } from "@/lib/prisma";
 
 const JWT_SECRET_STRING =
@@ -46,7 +47,8 @@ export async function verifyToken(token: string): Promise<AuthUser | null> {
   }
 }
 
-export async function getCurrentUser(): Promise<AuthUser | null> {
+// Request-lifecycle memoized user session to eliminate redundant verification calls
+export const getCurrentUser = cache(async (): Promise<AuthUser | null> => {
   try {
     const cookieStore = await cookies();
     const token = cookieStore.get("billing_session")?.value;
@@ -55,13 +57,12 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
   } catch {
     return null;
   }
-}
+});
 
-export async function requireUser(): Promise<AuthUser> {
+export const requireUser = cache(async (): Promise<AuthUser> => {
   const user = await getCurrentUser();
   if (!user) {
     throw new Error("UNAUTHORIZED: Please sign in to access your business account.");
   }
   return user;
-}
-
+});

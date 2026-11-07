@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import Sidebar from "@/components/Sidebar";
-import Navbar from "@/components/Navbar";
+import AppShell from "@/components/AppShell";
 import { getCurrentUser } from "@/lib/auth";
 import { getBusinessProfile } from "@/lib/actions";
 
@@ -41,14 +40,10 @@ export default async function RootLayout({
 
   return (
     <html lang="en">
-      <body className="flex h-screen overflow-hidden bg-slate-50 text-slate-900 antialiased">
-        <Sidebar user={user} businessName={profile.name} currency={profile.currency} />
-        <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-          <Navbar user={user} businessName={profile.name} currency={profile.currency} />
-          <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
-            {children}
-          </main>
-        </div>
+      <body className="min-h-screen bg-slate-50 text-slate-900 antialiased">
+        <AppShell user={user} businessName={profile.name} currency={profile.currency}>
+          {children}
+        </AppShell>
       </body>
     </html>
   );

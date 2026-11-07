@@ -39,6 +39,7 @@ export default function CustomersPage() {
   const [activePaymentCustomer, setActivePaymentCustomer] = useState<any>(null);
   const [payAmount, setPayAmount] = useState("");
   const [payMethod, setPayMethod] = useState("CASH");
+  const [payDate, setPayDate] = useState<string>(new Date().toISOString().split("T")[0]);
   const [payNotes, setPayNotes] = useState("");
 
   const currency = profile.currency || "₹";
@@ -96,6 +97,7 @@ export default function CustomersPage() {
         customerId: activePaymentCustomer.id,
         amount: amt,
         paymentMethod: payMethod,
+        dateString: payDate,
         notes: payNotes.trim() || `Khata debt repayment by ${activePaymentCustomer.name}`,
       });
       setActivePaymentCustomer(null);
@@ -417,6 +419,18 @@ export default function CustomersPage() {
                   value={payAmount}
                   onChange={(e) => setPayAmount(e.target.value)}
                   className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  Payment Date
+                </label>
+                <input
+                  type="date"
+                  value={payDate}
+                  onChange={(e) => setPayDate(e.target.value)}
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                 />
               </div>
 

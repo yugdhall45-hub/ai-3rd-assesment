@@ -56,6 +56,7 @@ model Product {
   updatedAt    DateTime      @updatedAt
 
   @@index([userId])
+  @@index([userId, category])
 }
 
 model Customer {
@@ -73,6 +74,7 @@ model Customer {
   updatedAt DateTime   @updatedAt
 
   @@index([userId])
+  @@index([userId, phone])
 }
 
 model Invoice {
@@ -102,6 +104,9 @@ model Invoice {
 
   @@unique([userId, invoiceNumber])
   @@index([userId])
+  @@index([userId, dateString])
+  @@index([userId, date])
+  @@index([userId, customerId])
 }
 
 model InvoiceItem {
@@ -132,6 +137,8 @@ model Payment {
   createdAt     DateTime  @default(now())
 
   @@index([userId])
+  @@index([userId, dateString])
+  @@index([userId, customerId])
 }
 
 model Expense {
@@ -150,6 +157,8 @@ model Expense {
   updatedAt     DateTime @updatedAt
 
   @@index([userId])
+  @@index([userId, dateString])
+  @@index([userId, date])
 }
 
 model OtherIncome {
@@ -167,6 +176,8 @@ model OtherIncome {
   updatedAt     DateTime @updatedAt
 
   @@index([userId])
+  @@index([userId, dateString])
+  @@index([userId, date])
 }
 
 model DaybookRegister {

@@ -32,6 +32,11 @@ body {
 
 /* Printing rules */
 @media print {
+  html, body {
+    overflow: visible !important;
+    height: auto !important;
+    background: white !important;
+  }
   body * {
     visibility: hidden;
   }
@@ -66,4 +71,3 @@ body {
   background: #fff;
   padding: 12px;
 }
-

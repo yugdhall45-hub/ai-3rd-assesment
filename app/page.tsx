@@ -12,7 +12,13 @@ import {
   AlertCircle,
   CheckCircle2,
 } from "lucide-react";
-import { getBusinessProfile, getInvoices, getExpenses, getOtherIncomes, getDaybook, getCustomers } from "@/lib/actions";
+import {
+  getBusinessProfile,
+  getInvoices,
+  getExpenses,
+  getDaybook,
+  getTotalCustomerDues,
+} from "@/lib/actions";
 
 export const dynamic = "force-dynamic";
 
@@ -21,23 +27,18 @@ export default async function DashboardPage() {
   const currency = profile.currency;
   const today = new Date().toISOString().split("T")[0];
 
-  const [invoices, expenses, otherIncomes, daybookData, customers] = await Promise.all([
+  // Parallel optimized data fetching without duplicate N+1 queries
+  const [daybookData, totalCustomerDues, invoices, expenses] = await Promise.all([
+    getDaybook(today),
+    getTotalCustomerDues(),
     getInvoices(10, today),
     getExpenses(10, today),
-    getOtherIncomes(10, today),
-    getDaybook(today),
-    getCustomers(),
   ]);
 
-  // Today's calculations
-  const todaySales = invoices.reduce((sum, inv) => sum + inv.total, 0);
-  const todayOtherIncome = otherIncomes.reduce((sum, inc) => sum + inc.amount, 0);
-  const todayTotalRevenue = todaySales + todayOtherIncome;
-  const todayExpenses = expenses.reduce((sum, exp) => sum + exp.amount, 0);
-  const todayNetProfit = todayTotalRevenue - todayExpenses;
-  const totalCustomerDues = customers.reduce((sum, c) => sum + (c.totalDues || 0), 0);
-
-  // Cash in drawer
+  // Fast pre-aggregated metrics from daybook register
+  const todaySales = daybookData.metrics.totalSalesAllModes;
+  const todayExpenses = daybookData.metrics.totalExpensesAllModes;
+  const todayNetProfit = daybookData.metrics.netDailyProfit;
   const expectedCashInDrawer = daybookData.metrics.expectedCash;
 
   return (

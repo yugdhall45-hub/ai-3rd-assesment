@@ -15,8 +15,15 @@ import {
 } from "lucide-react";
 import { getReports, getBusinessProfile } from "@/lib/actions";
 
+function formatDate(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
 export default function ReportsPage() {
-  const todayStr = new Date().toISOString().split("T")[0];
+  const todayStr = formatDate(new Date());
   const [startDate, setStartDate] = useState(todayStr);
   const [endDate, setEndDate] = useState(todayStr);
   const [data, setData] = useState<any>(null);
@@ -47,7 +54,7 @@ export default function ReportsPage() {
 
   const setPresetRange = (preset: "today" | "7days" | "month" | "year") => {
     const today = new Date();
-    const e = today.toISOString().split("T")[0];
+    const e = formatDate(today);
     let s = e;
 
     if (preset === "today") {
@@ -55,15 +62,13 @@ export default function ReportsPage() {
     } else if (preset === "7days") {
       const d = new Date();
       d.setDate(d.getDate() - 6);
-      s = d.toISOString().split("T")[0];
+      s = formatDate(d);
     } else if (preset === "month") {
-      const d = new Date();
-      d.setDate(1); // 1st of month
-      s = d.toISOString().split("T")[0];
+      const d = new Date(today.getFullYear(), today.getMonth(), 1);
+      s = formatDate(d);
     } else if (preset === "year") {
-      const d = new Date();
-      d.setMonth(0, 1);
-      s = d.toISOString().split("T")[0];
+      const d = new Date(today.getFullYear(), 0, 1);
+      s = formatDate(d);
     }
 
     setStartDate(s);

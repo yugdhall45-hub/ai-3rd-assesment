@@ -65,9 +65,12 @@ export default function DaybookPage() {
   }, [selectedDate]);
 
   const changeDateByDays = (days: number) => {
-    const d = new Date(selectedDate);
-    d.setDate(d.getDate() + days);
-    setSelectedDate(d.toISOString().split("T")[0]);
+    const parts = selectedDate.split("-").map(Number);
+    const d = new Date(parts[0], parts[1] - 1, parts[2] + days);
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    setSelectedDate(`${y}-${m}-${day}`);
   };
 
   const handleSaveRegister = async (closeDay = false) => {

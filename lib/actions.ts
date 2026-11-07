@@ -3,23 +3,30 @@
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { requireUser } from "@/lib/auth";
+import { cache } from "react";
 
 // ================= BUSINESS PROFILE =================
-export async function getBusinessProfile() {
+// Fast memoized profile read avoiding repeated write upsert transactions
+export const getBusinessProfile = cache(async () => {
   const user = await requireUser();
-  const profile = await prisma.businessProfile.upsert({
+  let profile = await prisma.businessProfile.findUnique({
     where: { userId: user.userId },
-    update: {},
-    create: {
-      userId: user.userId,
-      name: `${user.name}'s Store`,
-      currency: "₹",
-      taxRate: 0.0,
-      email: user.email,
-    },
   });
+
+  if (!profile) {
+    profile = await prisma.businessProfile.create({
+      data: {
+        userId: user.userId,
+        name: `${user.name}'s Store`,
+        currency: "₹",
+        taxRate: 0.0,
+        email: user.email,
+      },
+    });
+  }
+
   return profile;
-}
+});
 
 export async function updateBusinessProfile(data: {
   name: string;
@@ -38,6 +45,7 @@ export async function updateBusinessProfile(data: {
     update: data,
     create: { userId: user.userId, ...data },
   });
+  revalidatePath("/", "layout");
   revalidatePath("/");
   revalidatePath("/billing");
   revalidatePath("/settings");
@@ -163,21 +171,34 @@ export async function createCustomer(data: {
   return cust;
 }
 
+export async function getTotalCustomerDues(): Promise<number> {
+  const user = await requireUser();
+  const agg = await prisma.invoice.aggregate({
+    where: { userId: user.userId, dueAmount: { gt: 0 } },
+    _sum: { dueAmount: true },
+  });
+  return agg._sum.dueAmount || 0;
+}
+
 export async function recordCustomerPayment(data: {
   customerId: string;
   amount: number;
   paymentMethod: string;
+  dateString?: string;
   notes?: string;
 }) {
   const user = await requireUser();
-  const today = new Date().toISOString().split("T")[0];
+  const targetDateStr = data.dateString || new Date().toISOString().split("T")[0];
+  const paymentDate = data.dateString ? new Date(data.dateString + "T12:00:00") : new Date();
+
   const payment = await prisma.payment.create({
     data: {
       userId: user.userId,
       customerId: data.customerId,
       amount: Number(data.amount),
       paymentMethod: data.paymentMethod || "CASH",
-      dateString: today,
+      dateString: targetDateStr,
+      paymentDate,
       notes: data.notes || "Khata due clearance",
     },
   });
@@ -253,13 +274,16 @@ export async function createInvoice(data: {
   paidAmount: number;
   paymentMethod: "CASH" | "UPI" | "CARD" | "CREDIT";
   notes?: string;
+  dateString?: string;
 }) {
   const user = await requireUser();
+  const targetDateStr = data.dateString || new Date().toISOString().split("T")[0];
+  const invoiceDate = data.dateString ? new Date(data.dateString + "T12:00:00") : new Date();
+
   const count = await prisma.invoice.count({
     where: { userId: user.userId },
   });
-  const invoiceNumber = `INV-${new Date().getFullYear()}-${String(count + 1).padStart(4, "0")}`;
-  const today = new Date().toISOString().split("T")[0];
+  const invoiceNumber = `INV-${invoiceDate.getFullYear()}-${String(count + 1).padStart(4, "0")}`;
 
   const paidAmount = Number(data.paidAmount) || 0;
   const grandTotal = Number(data.total);
@@ -273,8 +297,8 @@ export async function createInvoice(data: {
     data: {
       userId: user.userId,
       invoiceNumber,
-      date: new Date(),
-      dateString: today,
+      date: invoiceDate,
+      dateString: targetDateStr,
       customerId: data.customerId || null,
       customerName: data.customerName || "Walk-in Customer",
       customerPhone: data.customerPhone || null,
@@ -288,13 +312,15 @@ export async function createInvoice(data: {
       paymentMethod: data.paymentMethod,
       notes: data.notes || null,
       items: {
-        create: data.items.map((item) => ({
-          productId: item.productId || null,
-          productName: item.productName,
-          quantity: item.quantity,
-          unitPrice: item.unitPrice,
-          total: item.total,
-        })),
+        create: data.items
+          .filter((item) => item.quantity > 0)
+          .map((item) => ({
+            productId: item.productId || null,
+            productName: item.productName,
+            quantity: item.quantity,
+            unitPrice: item.unitPrice,
+            total: item.total,
+          })),
       },
       payments: paidAmount > 0 ? {
         create: {
@@ -302,7 +328,8 @@ export async function createInvoice(data: {
           customerId: data.customerId || null,
           amount: paidAmount,
           paymentMethod: data.paymentMethod === "CREDIT" ? "CASH" : data.paymentMethod,
-          dateString: today,
+          dateString: targetDateStr,
+          paymentDate: invoiceDate,
           notes: `Initial payment for ${invoiceNumber}`,
         },
       } : undefined,
@@ -335,14 +362,20 @@ export async function createInvoice(data: {
   return invoice;
 }
 
-export async function markInvoicePaid(invoiceId: string, amount: number, paymentMethod: string) {
+export async function markInvoicePaid(
+  invoiceId: string,
+  amount: number,
+  paymentMethod: string,
+  dateString?: string
+) {
   const user = await requireUser();
   const inv = await prisma.invoice.findFirst({
     where: { id: invoiceId, userId: user.userId },
   });
   if (!inv) throw new Error("Invoice not found");
 
-  const today = new Date().toISOString().split("T")[0];
+  const targetDateStr = dateString || new Date().toISOString().split("T")[0];
+  const paymentDate = dateString ? new Date(dateString + "T12:00:00") : new Date();
   const newPaid = inv.paidAmount + amount;
   const newDue = Math.max(0, inv.total - newPaid);
   const newStatus = newDue <= 0.01 ? "PAID" : "PARTIAL";
@@ -354,7 +387,8 @@ export async function markInvoicePaid(invoiceId: string, amount: number, payment
       customerId: inv.customerId,
       amount,
       paymentMethod,
-      dateString: today,
+      dateString: targetDateStr,
+      paymentDate,
       notes: `Payment for ${inv.invoiceNumber}`,
     },
   });
@@ -398,7 +432,9 @@ export async function createExpense(data: {
   notes?: string;
 }) {
   const user = await requireUser();
-  const today = data.dateString || new Date().toISOString().split("T")[0];
+  const targetDateStr = data.dateString || new Date().toISOString().split("T")[0];
+  const expenseDate = data.dateString ? new Date(data.dateString + "T12:00:00") : new Date();
+
   const expense = await prisma.expense.create({
     data: {
       userId: user.userId,
@@ -406,7 +442,8 @@ export async function createExpense(data: {
       category: data.category || "General",
       amount: Number(data.amount),
       paymentMethod: data.paymentMethod || "CASH",
-      dateString: today,
+      date: expenseDate,
+      dateString: targetDateStr,
       reference: data.reference || null,
       notes: data.notes || null,
     },
@@ -450,7 +487,9 @@ export async function createOtherIncome(data: {
   notes?: string;
 }) {
   const user = await requireUser();
-  const today = data.dateString || new Date().toISOString().split("T")[0];
+  const targetDateStr = data.dateString || new Date().toISOString().split("T")[0];
+  const incomeDate = data.dateString ? new Date(data.dateString + "T12:00:00") : new Date();
+
   const income = await prisma.otherIncome.create({
     data: {
       userId: user.userId,
@@ -458,7 +497,8 @@ export async function createOtherIncome(data: {
       source: data.source || "Misc",
       amount: Number(data.amount),
       paymentMethod: data.paymentMethod || "CASH",
-      dateString: today,
+      date: incomeDate,
+      dateString: targetDateStr,
       notes: data.notes || null,
     },
   });
@@ -538,6 +578,7 @@ export async function getDaybook(dateString?: string) {
   for (const inv of invoices) {
     events.push({
       id: inv.id,
+      timestamp: new Date(inv.date).getTime(),
       type: "INVOICE",
       title: `Bill ${inv.invoiceNumber} (${inv.customerName})`,
       subtitle: `${inv.items.length} items • Status: ${inv.paymentStatus}`,
@@ -545,7 +586,7 @@ export async function getDaybook(dateString?: string) {
       paidAmount: inv.paidAmount,
       isIncome: true,
       paymentMethod: inv.paymentMethod,
-      time: inv.date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+      time: new Date(inv.date).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
       raw: inv,
     });
   }
@@ -553,13 +594,14 @@ export async function getDaybook(dateString?: string) {
   for (const exp of expenses) {
     events.push({
       id: exp.id,
+      timestamp: new Date(exp.date).getTime(),
       type: "EXPENSE",
       title: `${exp.title}`,
       subtitle: `Category: ${exp.category} ${exp.reference ? "• Ref: " + exp.reference : ""}`,
       amount: exp.amount,
       isIncome: false,
       paymentMethod: exp.paymentMethod,
-      time: exp.date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+      time: new Date(exp.date).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
       raw: exp,
     });
   }
@@ -567,13 +609,14 @@ export async function getDaybook(dateString?: string) {
   for (const inc of otherIncomes) {
     events.push({
       id: inc.id,
+      timestamp: new Date(inc.date).getTime(),
       type: "OTHER_INCOME",
       title: `${inc.title}`,
       subtitle: `Source: ${inc.source}`,
       amount: inc.amount,
       isIncome: true,
       paymentMethod: inc.paymentMethod,
-      time: inc.date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+      time: new Date(inc.date).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
       raw: inc,
     });
   }
@@ -583,19 +626,20 @@ export async function getDaybook(dateString?: string) {
   for (const pay of standalonePayments) {
     events.push({
       id: pay.id,
+      timestamp: new Date(pay.paymentDate).getTime(),
       type: "CUSTOMER_PAYMENT",
       title: `Khata Repayment: ${pay.customer?.name || "Customer"}`,
       subtitle: pay.notes || "Due collection",
       amount: pay.amount,
       isIncome: true,
       paymentMethod: pay.paymentMethod,
-      time: pay.paymentDate.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+      time: new Date(pay.paymentDate).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
       raw: pay,
     });
   }
 
-  // Sort events by time
-  events.sort((a, b) => b.time.localeCompare(a.time));
+  // Sort events chronologically (latest first)
+  events.sort((a, b) => b.timestamp - a.timestamp);
 
   return {
     dateString: targetDate,
