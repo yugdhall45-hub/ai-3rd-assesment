@@ -148,12 +148,12 @@ export default function ReportsPage() {
       {/* Top Header & Range Selector */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-black tracking-tight text-slate-900 flex items-center gap-2">
+          <h2 className="text-2xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
             <BarChart3 className="w-6 h-6 text-emerald-600" />
-            <span>Munafa & Bikri Reports (P&L)</span>
+            <span>Reports & Financial Management</span>
           </h2>
-          <p className="text-slate-500 text-xs sm:text-sm">
-            Dukaan ka shuddh munafa (profit), kul bikri, kharche aur sabse zyada bikne wale items.
+          <p className="text-slate-500 text-xs">
+            Analyze profit & loss, operating expenses, payment collections, and top products.
           </p>
         </div>
 
@@ -257,43 +257,43 @@ export default function ReportsPage() {
             </div>
 
             <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="p-4 rounded-xl bg-slate-50 border-2 border-slate-200">
-                <span className="text-xs font-black text-slate-700">Kul Bikri (Total Sales)</span>
-                <div className="text-2xl font-black text-slate-900 mt-1">
+              <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/80">
+                <span className="text-xs font-semibold text-slate-500">Total Sales Revenue</span>
+                <div className="text-2xl font-extrabold text-slate-900 mt-1">
                   {currency}{data.totalSales.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
                 </div>
                 {data.totalOtherIncome > 0 && (
-                  <div className="text-[11px] text-teal-700 mt-1 font-semibold">
-                    +{currency}{data.totalOtherIncome} anya aay (other income)
+                  <div className="text-[11px] text-teal-700 mt-1">
+                    +{currency}{data.totalOtherIncome} other revenue
                   </div>
                 )}
               </div>
 
-              <div className="p-4 rounded-xl bg-slate-50 border-2 border-slate-200">
-                <span className="text-xs font-black text-slate-700">Maal ki Khareed Lagat (COGS)</span>
-                <div className="text-2xl font-black text-slate-700 mt-1">
+              <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/80">
+                <span className="text-xs font-semibold text-slate-500">Estimated COGS</span>
+                <div className="text-2xl font-extrabold text-slate-700 mt-1">
                   {currency}{data.cogs.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
                 </div>
-                <div className="text-[11px] text-slate-400 mt-1">Bikri huye maal ki wholesale khareed</div>
+                <div className="text-[11px] text-slate-400 mt-1">Wholesale cost of goods sold</div>
               </div>
 
-              <div className="p-4 rounded-xl bg-slate-50 border-2 border-slate-200">
-                <span className="text-xs font-black text-slate-700">Dukaan ke Kharche (Expenses)</span>
-                <div className="text-2xl font-black text-rose-600 mt-1">
-                  −{currency}{data.totalExpenses.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
+              <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/80">
+                <span className="text-xs font-semibold text-slate-500">Operating Expenses</span>
+                <div className="text-2xl font-extrabold text-rose-600 mt-1">
+                  {currency}{data.totalExpenses.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
                 </div>
-                <div className="text-[11px] text-slate-400 mt-1">{data.expensesCount} kharche note kiye</div>
+                <div className="text-[11px] text-slate-400 mt-1">{data.expensesCount} expenses recorded</div>
               </div>
 
-              <div className="p-4 rounded-xl bg-gradient-to-br from-slate-900 to-slate-800 text-white shadow-md">
-                <span className="text-xs font-black text-emerald-300">Shuddh Munafa (Net Profit)</span>
-                <div className={`text-2xl font-black mt-1 ${
+              <div className="p-4 rounded-xl bg-gradient-to-br from-slate-900 to-slate-800 text-white">
+                <span className="text-xs font-semibold text-slate-300">Net Business Profit</span>
+                <div className={`text-2xl font-extrabold mt-1 ${
                   data.netProfit >= 0 ? "text-emerald-400" : "text-amber-400"
                 }`}>
                   {currency}{data.netProfit.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
                 </div>
-                <div className="text-[11px] text-slate-300 mt-1">
-                  Bikri − Lagat − Kharche
+                <div className="text-[11px] text-slate-400 mt-1">
+                  Gross Revenue − COGS − Expenses
                 </div>
               </div>
             </div>

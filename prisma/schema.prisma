@@ -12,16 +12,25 @@ model User {
   email            String            @unique
   password         String
   name             String
+  role             String            @default("OWNER")
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @updatedAt
   businessProfile  BusinessProfile?
   products         Product[]
   customers        Customer[]
+  suppliers        Supplier[]
   invoices         Invoice[]
+  purchases        Purchase[]
   payments         Payment[]
+  supplierPayments SupplierPayment[]
   expenses         Expense[]
   otherIncomes     OtherIncome[]
   daybookRegisters DaybookRegister[]
+  stockMovements   StockMovement[]
+  bankAccounts     BankAccount[]
+  transactions     Transaction[]
+  auditLogs        AuditLog[]
+  staffMembers     StaffMember[]
 }
 
 model BusinessProfile {
@@ -41,37 +50,67 @@ model BusinessProfile {
 }
 
 model Product {
-  id           String        @id @default(uuid())
-  userId       String
-  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  name         String
-  sku          String?
-  category     String        @default("General")
-  costPrice    Float         @default(0)
-  sellingPrice Float
-  stock        Int           @default(0)
-  unit         String        @default("pcs")
-  items        InvoiceItem[]
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
+  id             String          @id @default(uuid())
+  userId         String
+  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name           String
+  sku            String?
+  category       String          @default("General")
+  brand          String?
+  costPrice      Float           @default(0)
+  sellingPrice   Float
+  stock          Int             @default(0)
+  minStockLevel  Int             @default(5)
+  unit           String          @default("pcs")
+  description    String?
+  items          InvoiceItem[]
+  purchaseItems  PurchaseItem[]
+  stockMovements StockMovement[]
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
 
   @@index([userId])
   @@index([userId, category])
 }
 
 model Customer {
-  id        String     @id @default(uuid())
-  userId    String
-  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  name      String
-  phone     String?
-  email     String?
-  address   String?
-  notes     String?
-  invoices  Invoice[]
-  payments  Payment[]
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
+  id             String     @id @default(uuid())
+  userId         String
+  user           User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  customerCode   String?
+  name           String
+  phone          String?
+  email          String?
+  address        String?
+  openingBalance Float      @default(0)
+  notes          String?
+  invoices       Invoice[]
+  payments       Payment[]
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+
+  @@index([userId])
+  @@index([userId, phone])
+}
+
+model Supplier {
+  id                 String            @id @default(uuid())
+  userId             String
+  user               User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  creditorCode       String?
+  name               String
+  businessName       String?
+  phone              String?
+  email              String?
+  address            String?
+  openingBalance     Float             @default(0)
+  currentBalance     Float             @default(0)
+  paymentTerms       String?
+  notes              String?
+  purchases          Purchase[]
+  supplierPayments   SupplierPayment[]
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
 
   @@index([userId])
   @@index([userId, phone])
@@ -121,6 +160,48 @@ model InvoiceItem {
   total       Float
 }
 
+model Purchase {
+  id             String          @id @default(uuid())
+  userId         String
+  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  purchaseNumber String
+  date           DateTime        @default(now())
+  dateString     String
+  supplierId     String?
+  supplier       Supplier?       @relation(fields: [supplierId], references: [id], onDelete: SetNull)
+  supplierName   String          @default("Direct Supplier")
+  subtotal       Float
+  discount       Float           @default(0)
+  tax            Float           @default(0)
+  total          Float
+  paidAmount     Float           @default(0)
+  dueAmount      Float           @default(0)
+  paymentStatus  String          @default("PAID")
+  paymentMethod  String          @default("CASH")
+  notes          String?
+  items          PurchaseItem[]
+  payments       SupplierPayment[]
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  @@unique([userId, purchaseNumber])
+  @@index([userId])
+  @@index([userId, dateString])
+  @@index([userId, supplierId])
+}
+
+model PurchaseItem {
+  id           String    @id @default(uuid())
+  purchaseId   String
+  purchase     Purchase  @relation(fields: [purchaseId], references: [id], onDelete: Cascade)
+  productId    String?
+  product      Product?  @relation(fields: [productId], references: [id], onDelete: SetNull)
+  productName  String
+  quantity     Int       @default(1)
+  unitCost     Float
+  total        Float
+}
+
 model Payment {
   id            String    @id @default(uuid())
   userId        String
@@ -139,6 +220,116 @@ model Payment {
   @@index([userId])
   @@index([userId, dateString])
   @@index([userId, customerId])
+}
+
+model SupplierPayment {
+  id            String    @id @default(uuid())
+  userId        String
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  supplierId    String
+  supplier      Supplier  @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+  purchaseId    String?
+  purchase      Purchase? @relation(fields: [purchaseId], references: [id], onDelete: SetNull)
+  amount        Float
+  paymentMethod String    @default("CASH")
+  paymentDate   DateTime  @default(now())
+  dateString    String
+  reference     String?
+  notes         String?
+  createdAt     DateTime  @default(now())
+
+  @@index([userId])
+  @@index([supplierId])
+  @@index([userId, dateString])
+}
+
+model StockMovement {
+  id            String   @id @default(uuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  productId     String
+  product       Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  type          String   // PURCHASE, SALE, RETURN, DAMAGE, ADJUSTMENT
+  quantity      Int      // Change amount (+ or -)
+  previousStock Int
+  newStock      Int
+  reason        String?
+  referenceId   String?  // Invoice # or Purchase #
+  createdAt     DateTime @default(now())
+
+  @@index([userId])
+  @@index([productId])
+  @@index([userId, type])
+}
+
+model BankAccount {
+  id            String   @id @default(uuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bankName      String
+  accountHolder String
+  accountNumber String
+  ifscCode      String?
+  upiId         String?
+  balance       Float    @default(0)
+  isPrimary     Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([userId])
+}
+
+model Transaction {
+  id            String   @id @default(uuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  txnNumber     String   // TXN-000001
+  type          String   // MONEY_IN, MONEY_OUT, TRANSFER
+  category      String   // SALE, PURCHASE, EXPENSE, CUSTOMER_PAYMENT, SUPPLIER_PAYMENT, BANK_TRANSFER, OTHER
+  amount        Float
+  paymentMode   String   // CASH, UPI, BANK_TRANSFER, CHEQUE, CARD
+  partyName     String?
+  reference     String?
+  description   String?
+  date          DateTime @default(now())
+  dateString    String
+  createdAt     DateTime @default(now())
+
+  @@index([userId])
+  @@index([userId, dateString])
+  @@index([userId, category])
+}
+
+model AuditLog {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  action      String   // CREATE, UPDATE, DELETE, VOID, SETTLE
+  entityType  String   // INVOICE, PURCHASE, PRODUCT, CUSTOMER, SUPPLIER, EXPENSE, DAYBOOK, BANK
+  entityId    String
+  details     String
+  performedBy String   @default("Owner")
+  createdAt   DateTime @default(now())
+
+  @@index([userId])
+  @@index([userId, entityType])
+}
+
+model StaffMember {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name        String
+  phone       String
+  role        String   @default("STAFF") // OWNER, MANAGER, ACCOUNTANT, STAFF
+  pin         String?
+  salary      Float?
+  isActive    Boolean  @default(true)
+  permissions String?  // JSON string
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId])
 }
 
 model Expense {

@@ -921,3 +921,879 @@ export async function getReports(startDate?: string, endDate?: string) {
     topProducts,
   };
 }
+
+
+// ================= CREDITORS / SUPPLIERS =================
+export async function getSuppliers() {
+  const user = await requireUser();
+  return await prisma.supplier.findMany({
+    where: { userId: user.userId },
+    include: {
+      _count: {
+        select: {
+          purchases: true,
+          supplierPayments: true,
+        },
+      },
+    },
+    orderBy: { name: "asc" },
+  });
+}
+
+export async function getSupplierById(id: string) {
+  const user = await requireUser();
+  return await prisma.supplier.findFirst({
+    where: { id, userId: user.userId },
+    include: {
+      purchases: {
+        orderBy: { date: "desc" },
+        include: { items: true },
+      },
+      supplierPayments: {
+        orderBy: { paymentDate: "desc" },
+      },
+    },
+  });
+}
+
+export async function createSupplier(data: {
+  name: string;
+  businessName?: string;
+  phone?: string;
+  email?: string;
+  address?: string;
+  openingBalance?: number;
+  paymentTerms?: string;
+  notes?: string;
+}) {
+  const user = await requireUser();
+  const count = await prisma.supplier.count({ where: { userId: user.userId } });
+  const creditorCode = `CRED-${String(count + 1).padStart(6, "0")}`;
+  const openingBal = Number(data.openingBalance) || 0;
+
+  const supplier = await prisma.supplier.create({
+    data: {
+      userId: user.userId,
+      creditorCode,
+      name: data.name,
+      businessName: data.businessName || null,
+      phone: data.phone || null,
+      email: data.email || null,
+      address: data.address || null,
+      openingBalance: openingBal,
+      currentBalance: openingBal,
+      paymentTerms: data.paymentTerms || "Net 30",
+      notes: data.notes || null,
+    },
+  });
+
+  // Log Audit
+  await prisma.auditLog.create({
+    data: {
+      userId: user.userId,
+      action: "CREATE",
+      entityType: "SUPPLIER",
+      entityId: supplier.id,
+      details: `Created creditor ${supplier.name} (${supplier.creditorCode}) with opening balance ₹${openingBal}`,
+    },
+  }).catch(() => null);
+
+  invalidateBusinessCache();
+  revalidatePath("/creditors");
+  revalidatePath("/purchases");
+  revalidatePath("/");
+  return supplier;
+}
+
+export async function updateSupplier(
+  id: string,
+  data: {
+    name?: string;
+    businessName?: string;
+    phone?: string;
+    email?: string;
+    address?: string;
+    paymentTerms?: string;
+    notes?: string;
+  }
+) {
+  const user = await requireUser();
+  const updated = await prisma.supplier.update({
+    where: { id, userId: user.userId },
+    data,
+  });
+
+  revalidatePath("/creditors");
+  return updated;
+}
+
+export async function deleteSupplier(id: string) {
+  const user = await requireUser();
+  await prisma.supplier.delete({
+    where: { id, userId: user.userId },
+  });
+
+  await prisma.auditLog.create({
+    data: {
+      userId: user.userId,
+      action: "DELETE",
+      entityType: "SUPPLIER",
+      entityId: id,
+      details: `Deleted creditor ID ${id}`,
+    },
+  }).catch(() => null);
+
+  invalidateBusinessCache();
+  revalidatePath("/creditors");
+  revalidatePath("/");
+  return { success: true };
+}
+
+export async function recordSupplierPayment(data: {
+  supplierId: string;
+  purchaseId?: string;
+  amount: number;
+  paymentMethod: string;
+  paymentDate?: string;
+  reference?: string;
+  notes?: string;
+}) {
+  const user = await requireUser();
+  const amt = Number(data.amount);
+  if (amt <= 0) throw new Error("Payment amount must be greater than zero");
+
+  const supplier = await prisma.supplier.findFirst({
+    where: { id: data.supplierId, userId: user.userId },
+  });
+  if (!supplier) throw new Error("Supplier not found");
+
+  const targetDate = data.paymentDate || new Date().toISOString().split("T")[0];
+  const dateObj = new Date(targetDate + "T12:00:00");
+
+  const countTxn = await prisma.transaction.count({ where: { userId: user.userId } });
+  const txnNumber = `TXN-${String(countTxn + 1).padStart(6, "0")}`;
+
+  const result = await prisma.$transaction(async (tx) => {
+    // 1. Record payment
+    const payment = await tx.supplierPayment.create({
+      data: {
+        userId: user.userId,
+        supplierId: supplier.id,
+        purchaseId: data.purchaseId || null,
+        amount: amt,
+        paymentMethod: data.paymentMethod || "CASH",
+        dateString: targetDate,
+        paymentDate: dateObj,
+        reference: data.reference || null,
+        notes: data.notes || `Payment made to ${supplier.name}`,
+      },
+    });
+
+    // 2. Reduce creditor outstanding balance
+    const newBal = Math.max(0, supplier.currentBalance - amt);
+    await tx.supplier.update({
+      where: { id: supplier.id },
+      data: { currentBalance: newBal },
+    });
+
+    // 3. Update purchase if linked
+    if (data.purchaseId) {
+      const pur = await tx.purchase.findUnique({ where: { id: data.purchaseId } });
+      if (pur) {
+        const newPaid = pur.paidAmount + amt;
+        const newDue = Math.max(0, pur.total - newPaid);
+        await tx.purchase.update({
+          where: { id: pur.id },
+          data: {
+            paidAmount: newPaid,
+            dueAmount: newDue,
+            paymentStatus: newDue <= 0.01 ? "PAID" : "PARTIAL",
+          },
+        });
+      }
+    }
+
+    // 4. Record unified money out transaction
+    await tx.transaction.create({
+      data: {
+        userId: user.userId,
+        txnNumber,
+        type: "MONEY_OUT",
+        category: "SUPPLIER_PAYMENT",
+        amount: amt,
+        paymentMode: data.paymentMethod || "CASH",
+        partyName: supplier.name,
+        reference: data.reference || null,
+        description: `Payment to creditor ${supplier.name}`,
+        date: dateObj,
+        dateString: targetDate,
+      },
+    });
+
+    // 5. Audit Log
+    await tx.auditLog.create({
+      data: {
+        userId: user.userId,
+        action: "SETTLE",
+        entityType: "SUPPLIER",
+        entityId: supplier.id,
+        details: `Paid ₹${amt} to ${supplier.name} via ${data.paymentMethod}. New balance: ₹${newBal}`,
+      },
+    });
+
+    return payment;
+  });
+
+  invalidateBusinessCache();
+  revalidatePath("/creditors");
+  revalidatePath("/purchases");
+  revalidatePath("/transactions");
+  revalidatePath("/daybook");
+  revalidatePath("/");
+  return result;
+}
+
+// ================= PURCHASES MANAGEMENT =================
+export async function getPurchases(limit = 100) {
+  const user = await requireUser();
+  return await prisma.purchase.findMany({
+    where: { userId: user.userId },
+    include: {
+      supplier: true,
+      items: true,
+      payments: true,
+    },
+    orderBy: { date: "desc" },
+    take: limit,
+  });
+}
+
+export async function createPurchase(data: {
+  supplierId?: string;
+  supplierName?: string;
+  dateString?: string;
+  items: Array<{
+    productId?: string;
+    productName: string;
+    quantity: number;
+    unitCost: number;
+    total: number;
+  }>;
+  subtotal: number;
+  discount: number;
+  tax: number;
+  total: number;
+  paidAmount: number;
+  paymentMethod: string;
+  notes?: string;
+}) {
+  const user = await requireUser();
+  const dateStr = data.dateString || new Date().toISOString().split("T")[0];
+  const dateObj = new Date(dateStr + "T12:00:00");
+
+  const countPurchases = await prisma.purchase.count({ where: { userId: user.userId } });
+  const purchaseNumber = `PUR-${String(countPurchases + 1).padStart(6, "0")}`;
+
+  const dueAmount = Math.max(0, data.total - data.paidAmount);
+  const paymentStatus = dueAmount <= 0.01 ? "PAID" : data.paidAmount > 0 ? "PARTIAL" : "UNPAID";
+
+  const countTxn = await prisma.transaction.count({ where: { userId: user.userId } });
+  const txnNumber = `TXN-${String(countTxn + 1).padStart(6, "0")}`;
+
+  const purchase = await prisma.$transaction(async (tx) => {
+    // 1. Create Purchase record
+    const pur = await tx.purchase.create({
+      data: {
+        userId: user.userId,
+        purchaseNumber,
+        date: dateObj,
+        dateString: dateStr,
+        supplierId: data.supplierId || null,
+        supplierName: data.supplierName || "Direct Supplier",
+        subtotal: data.subtotal,
+        discount: data.discount,
+        tax: data.tax,
+        total: data.total,
+        paidAmount: data.paidAmount,
+        dueAmount,
+        paymentStatus,
+        paymentMethod: data.paymentMethod,
+        notes: data.notes || null,
+        items: {
+          create: data.items.map((item) => ({
+            productId: item.productId || null,
+            productName: item.productName,
+            quantity: item.quantity,
+            unitCost: item.unitCost,
+            total: item.total,
+          })),
+        },
+      },
+      include: { items: true },
+    });
+
+    // 2. Increase stock for each product & create StockMovement
+    for (const item of data.items) {
+      if (item.productId) {
+        const prod = await tx.product.findUnique({ where: { id: item.productId } });
+        if (prod) {
+          const newStock = prod.stock + item.quantity;
+          await tx.product.update({
+            where: { id: item.productId },
+            data: {
+              stock: newStock,
+              costPrice: item.unitCost > 0 ? item.unitCost : prod.costPrice,
+            },
+          });
+
+          await tx.stockMovement.create({
+            data: {
+              userId: user.userId,
+              productId: item.productId,
+              type: "PURCHASE",
+              quantity: item.quantity,
+              previousStock: prod.stock,
+              newStock,
+              reason: `Stock purchased on ${purchaseNumber}`,
+              referenceId: purchaseNumber,
+            },
+          });
+        }
+      }
+    }
+
+    // 3. Update Creditor balance & log payment if supplier linked
+    if (data.supplierId) {
+      const supp = await tx.supplier.findUnique({ where: { id: data.supplierId } });
+      if (supp) {
+        // If there's an unpaid due, add it to supplier balance
+        const updatedBal = supp.currentBalance + dueAmount;
+        await tx.supplier.update({
+          where: { id: data.supplierId },
+          data: { currentBalance: updatedBal },
+        });
+
+        // If initial amount paid, record SupplierPayment
+        if (data.paidAmount > 0) {
+          await tx.supplierPayment.create({
+            data: {
+              userId: user.userId,
+              supplierId: supp.id,
+              purchaseId: pur.id,
+              amount: data.paidAmount,
+              paymentMethod: data.paymentMethod,
+              dateString: dateStr,
+              paymentDate: dateObj,
+              notes: `Initial payment for ${purchaseNumber}`,
+            },
+          });
+        }
+      }
+    }
+
+    // 4. Record Money Out transaction for paid portion
+    if (data.paidAmount > 0) {
+      await tx.transaction.create({
+        data: {
+          userId: user.userId,
+          txnNumber,
+          type: "MONEY_OUT",
+          category: "PURCHASE",
+          amount: data.paidAmount,
+          paymentMode: data.paymentMethod,
+          partyName: data.supplierName || "Supplier",
+          reference: purchaseNumber,
+          description: `Purchase bill ${purchaseNumber}`,
+          date: dateObj,
+          dateString: dateStr,
+        },
+      });
+    }
+
+    // 5. Audit Log
+    await tx.auditLog.create({
+      data: {
+        userId: user.userId,
+        action: "CREATE",
+        entityType: "PURCHASE",
+        entityId: pur.id,
+        details: `Recorded purchase ${purchaseNumber} from ${data.supplierName || "Supplier"} for ₹${data.total}`,
+      },
+    });
+
+    return pur;
+  });
+
+  invalidateBusinessCache();
+  revalidatePath("/purchases");
+  revalidatePath("/inventory");
+  revalidatePath("/creditors");
+  revalidatePath("/transactions");
+  revalidatePath("/daybook");
+  revalidatePath("/");
+  return purchase;
+}
+
+// ================= STOCK MOVEMENTS & ADJUSTMENTS =================
+export async function getStockMovements(productId?: string) {
+  const user = await requireUser();
+  return await prisma.stockMovement.findMany({
+    where: {
+      userId: user.userId,
+      ...(productId ? { productId } : {}),
+    },
+    include: { product: true },
+    orderBy: { createdAt: "desc" },
+    take: 100,
+  });
+}
+
+export async function adjustStock(data: {
+  productId: string;
+  type: "DAMAGE" | "RETURN" | "ADJUSTMENT" | "PURCHASE" | "SALE";
+  quantity: number;
+  reason?: string;
+}) {
+  const user = await requireUser();
+  const prod = await prisma.product.findFirst({
+    where: { id: data.productId, userId: user.userId },
+  });
+  if (!prod) throw new Error("Product not found");
+
+  const qty = Number(data.quantity);
+  const newStock = prod.stock + qty;
+
+  const result = await prisma.$transaction(async (tx) => {
+    const updated = await tx.product.update({
+      where: { id: data.productId },
+      data: { stock: newStock },
+    });
+
+    await tx.stockMovement.create({
+      data: {
+        userId: user.userId,
+        productId: data.productId,
+        type: data.type,
+        quantity: qty,
+        previousStock: prod.stock,
+        newStock,
+        reason: data.reason || `Manual ${data.type} adjustment`,
+      },
+    });
+
+    await tx.auditLog.create({
+      data: {
+        userId: user.userId,
+        action: "UPDATE",
+        entityType: "PRODUCT",
+        entityId: data.productId,
+        details: `Stock adjustment on ${prod.name}: ${qty > 0 ? "+" + qty : qty}. New stock: ${newStock}`,
+      },
+    });
+
+    return updated;
+  });
+
+  revalidatePath("/inventory");
+  revalidatePath("/billing");
+  return result;
+}
+
+export async function getInventoryValuation() {
+  const user = await requireUser();
+  const products = await prisma.product.findMany({
+    where: { userId: user.userId },
+  });
+
+  let totalStockCount = 0;
+  let totalCostValue = 0;
+  let totalRetailValue = 0;
+  let lowStockCount = 0;
+
+  for (const p of products) {
+    const stock = Math.max(0, p.stock);
+    totalStockCount += stock;
+    totalCostValue += stock * (p.costPrice || 0);
+    totalRetailValue += stock * p.sellingPrice;
+    if (p.stock <= (p.minStockLevel || 5)) {
+      lowStockCount++;
+    }
+  }
+
+  const potentialGrossProfit = totalRetailValue - totalCostValue;
+
+  return {
+    totalProducts: products.length,
+    totalStockCount,
+    totalCostValue,
+    totalRetailValue,
+    potentialGrossProfit,
+    lowStockCount,
+  };
+}
+
+// ================= BANK & UPI ACCOUNTS =================
+export async function getBankAccounts() {
+  const user = await requireUser();
+  return await prisma.bankAccount.findMany({
+    where: { userId: user.userId },
+    orderBy: { createdAt: "asc" },
+  });
+}
+
+export async function createBankAccount(data: {
+  bankName: string;
+  accountHolder: string;
+  accountNumber: string;
+  ifscCode?: string;
+  upiId?: string;
+  balance?: number;
+  isPrimary?: boolean;
+}) {
+  const user = await requireUser();
+  const bal = Number(data.balance) || 0;
+
+  const account = await prisma.bankAccount.create({
+    data: {
+      userId: user.userId,
+      bankName: data.bankName,
+      accountHolder: data.accountHolder,
+      accountNumber: data.accountNumber,
+      ifscCode: data.ifscCode || null,
+      upiId: data.upiId || null,
+      balance: bal,
+      isPrimary: data.isPrimary ?? false,
+    },
+  });
+
+  await prisma.auditLog.create({
+    data: {
+      userId: user.userId,
+      action: "CREATE",
+      entityType: "BANK",
+      entityId: account.id,
+      details: `Added bank account ${account.bankName} (${account.accountNumber.slice(-4)}) with initial ₹${bal}`,
+    },
+  }).catch(() => null);
+
+  invalidateBusinessCache();
+  revalidatePath("/bank");
+  revalidatePath("/");
+  return account;
+}
+
+export async function updateBankAccount(
+  id: string,
+  data: {
+    bankName?: string;
+    accountHolder?: string;
+    accountNumber?: string;
+    ifscCode?: string;
+    upiId?: string;
+    balance?: number;
+    isPrimary?: boolean;
+  }
+) {
+  const user = await requireUser();
+  const updated = await prisma.bankAccount.update({
+    where: { id, userId: user.userId },
+    data,
+  });
+
+  revalidatePath("/bank");
+  return updated;
+}
+
+export async function deleteBankAccount(id: string) {
+  const user = await requireUser();
+  await prisma.bankAccount.delete({
+    where: { id, userId: user.userId },
+  });
+
+  invalidateBusinessCache();
+  revalidatePath("/bank");
+  revalidatePath("/");
+  return { success: true };
+}
+
+export async function recordBankTransfer(data: {
+  bankAccountId: string;
+  direction: "CASH_TO_BANK" | "BANK_TO_CASH";
+  amount: number;
+  reference?: string;
+  notes?: string;
+}) {
+  const user = await requireUser();
+  const amt = Number(data.amount);
+  if (amt <= 0) throw new Error("Amount must be greater than zero");
+
+  const bank = await prisma.bankAccount.findFirst({
+    where: { id: data.bankAccountId, userId: user.userId },
+  });
+  if (!bank) throw new Error("Bank account not found");
+
+  const today = new Date().toISOString().split("T")[0];
+  const dateObj = new Date();
+  const countTxn = await prisma.transaction.count({ where: { userId: user.userId } });
+  const txnNumber = `TXN-${String(countTxn + 1).padStart(6, "0")}`;
+
+  const newBalance =
+    data.direction === "CASH_TO_BANK" ? bank.balance + amt : Math.max(0, bank.balance - amt);
+
+  const res = await prisma.$transaction(async (tx) => {
+    // 1. Update bank balance
+    await tx.bankAccount.update({
+      where: { id: bank.id },
+      data: { balance: newBalance },
+    });
+
+    // 2. Record Transaction
+    await tx.transaction.create({
+      data: {
+        userId: user.userId,
+        txnNumber,
+        type: "TRANSFER",
+        category: "BANK_TRANSFER",
+        amount: amt,
+        paymentMode: data.direction === "CASH_TO_BANK" ? "CASH" : "BANK_TRANSFER",
+        partyName: bank.bankName,
+        reference: data.reference || null,
+        description:
+          data.direction === "CASH_TO_BANK"
+            ? `Cash deposited into ${bank.bankName} (${bank.accountNumber.slice(-4)})`
+            : `Cash withdrawn from ${bank.bankName} (${bank.accountNumber.slice(-4)})`,
+        date: dateObj,
+        dateString: today,
+      },
+    });
+
+    // 3. Audit Log
+    await tx.auditLog.create({
+      data: {
+        userId: user.userId,
+        action: "UPDATE",
+        entityType: "BANK",
+        entityId: bank.id,
+        details: `Transfer of ₹${amt} [${data.direction}]. New balance: ₹${newBalance}`,
+      },
+    });
+
+    return { newBalance };
+  });
+
+  invalidateBusinessCache();
+  revalidatePath("/bank");
+  revalidatePath("/daybook");
+  revalidatePath("/transactions");
+  revalidatePath("/");
+  return res;
+}
+
+// ================= MASTER UNIFIED TRANSACTIONS & AUDIT LOG =================
+export async function getTransactions(options?: {
+  category?: string;
+  type?: string;
+  limit?: number;
+  startDate?: string;
+  endDate?: string;
+}) {
+  const user = await requireUser();
+  const limit = options?.limit || 100;
+
+  const where: any = { userId: user.userId };
+  if (options?.category && options.category !== "ALL") {
+    where.category = options.category;
+  }
+  if (options?.type && options.type !== "ALL") {
+    where.type = options.type;
+  }
+  if (options?.startDate || options?.endDate) {
+    where.dateString = {};
+    if (options.startDate) where.dateString.gte = options.startDate;
+    if (options.endDate) where.dateString.lte = options.endDate;
+  }
+
+  return await prisma.transaction.findMany({
+    where,
+    orderBy: { date: "desc" },
+    take: limit,
+  });
+}
+
+export async function getAuditLogs(limit = 100) {
+  const user = await requireUser();
+  return await prisma.auditLog.findMany({
+    where: { userId: user.userId },
+    orderBy: { createdAt: "desc" },
+    take: limit,
+  });
+}
+
+// ================= STAFF MANAGEMENT =================
+export async function getStaffMembers() {
+  const user = await requireUser();
+  return await prisma.staffMember.findMany({
+    where: { userId: user.userId },
+    orderBy: { createdAt: "asc" },
+  });
+}
+
+export async function createStaffMember(data: {
+  name: string;
+  phone: string;
+  role: string;
+  pin?: string;
+  salary?: number;
+  permissions?: string;
+}) {
+  const user = await requireUser();
+  const staff = await prisma.staffMember.create({
+    data: {
+      userId: user.userId,
+      name: data.name,
+      phone: data.phone,
+      role: data.role || "STAFF",
+      pin: data.pin || null,
+      salary: data.salary ? Number(data.salary) : null,
+      permissions: data.permissions || JSON.stringify(["billing", "customers"]),
+    },
+  });
+
+  await prisma.auditLog.create({
+    data: {
+      userId: user.userId,
+      action: "CREATE",
+      entityType: "STAFF",
+      entityId: staff.id,
+      details: `Added staff member ${staff.name} (${staff.role})`,
+    },
+  }).catch(() => null);
+
+  revalidatePath("/staff");
+  return staff;
+}
+
+export async function updateStaffMember(
+  id: string,
+  data: {
+    name?: string;
+    phone?: string;
+    role?: string;
+    pin?: string;
+    salary?: number;
+    isActive?: boolean;
+    permissions?: string;
+  }
+) {
+  const user = await requireUser();
+  const updated = await prisma.staffMember.update({
+    where: { id, userId: user.userId },
+    data,
+  });
+
+  revalidatePath("/staff");
+  return updated;
+}
+
+export async function deleteStaffMember(id: string) {
+  const user = await requireUser();
+  await prisma.staffMember.delete({
+    where: { id, userId: user.userId },
+  });
+
+  await prisma.auditLog.create({
+    data: {
+      userId: user.userId,
+      action: "DELETE",
+      entityType: "STAFF",
+      entityId: id,
+      details: `Removed staff member ID ${id}`,
+    },
+  }).catch(() => null);
+
+  revalidatePath("/staff");
+  return { success: true };
+}
+
+// ================= REAL-TIME SYSTEM NOTIFICATIONS =================
+export async function getSystemNotifications() {
+  const user = await requireUser();
+  const today = new Date().toISOString().split("T")[0];
+
+  // 1. Low stock products
+  const products = await prisma.product.findMany({
+    where: { userId: user.userId },
+  });
+  const lowStock = products.filter((p) => p.stock <= (p.minStockLevel || 5));
+
+  // 2. Customers with outstanding balance
+  const customers = await prisma.customer.findMany({
+    where: { userId: user.userId },
+    include: {
+      invoices: { select: { dueAmount: true } },
+    },
+  });
+  const debtorsWithDues = customers
+    .map((c) => ({
+      name: c.name,
+      phone: c.phone,
+      due: c.invoices.reduce((s, i) => s + i.dueAmount, 0),
+    }))
+    .filter((c) => c.due > 0.01);
+
+  // 3. Creditors with outstanding balance
+  const creditors = await prisma.supplier.findMany({
+    where: { userId: user.userId, currentBalance: { gt: 0 } },
+  });
+
+  // 4. Daybook status for today
+  const daybook = await prisma.daybookRegister.findFirst({
+    where: { userId: user.userId, dateString: today },
+  });
+
+  const alerts = [];
+
+  if (lowStock.length > 0) {
+    alerts.push({
+      id: "alert-low-stock",
+      type: "WARNING",
+      title: `${lowStock.length} Products Low in Stock`,
+      description: `Stock is below safe threshold for ${lowStock.slice(0, 3).map((p) => p.name).join(", ")}${lowStock.length > 3 ? "..." : ""}`,
+      link: "/inventory",
+    });
+  }
+
+  if (debtorsWithDues.length > 0) {
+    const totalDebtorDue = debtorsWithDues.reduce((s, d) => s + d.due, 0);
+    alerts.push({
+      id: "alert-debtors",
+      type: "INFO",
+      title: `₹${totalDebtorDue.toLocaleString("en-IN")} Pending in Khata`,
+      description: `${debtorsWithDues.length} customers have pending payment due.`,
+      link: "/customers",
+    });
+  }
+
+  if (creditors.length > 0) {
+    const totalPayable = creditors.reduce((s, c) => s + c.currentBalance, 0);
+    alerts.push({
+      id: "alert-creditors",
+      type: "WARNING",
+      title: `₹${totalPayable.toLocaleString("en-IN")} Payable to Creditors`,
+      description: `You owe balance to ${creditors.length} suppliers/creditors.`,
+      link: "/creditors",
+    });
+  }
+
+  if (!daybook || !daybook.isClosed) {
+    alerts.push({
+      id: "alert-daybook",
+      type: "REMINDER",
+      title: "Today's Daybook is Open",
+      description: "Remember to tally Galla cash and lock your daybook before closing shop tonight.",
+      link: "/daybook",
+    });
+  }
+
+  return alerts;
+}

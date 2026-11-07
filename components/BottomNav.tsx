@@ -18,10 +18,10 @@ export default function BottomNav({ onOpenMenu }: BottomNavProps) {
   const pathname = usePathname();
 
   const navItems = [
-    { label: "Dashboard", href: "/", icon: LayoutDashboard },
-    { label: "+ Naya Bill", href: "/billing", icon: Receipt },
-    { label: "Khata Book", href: "/customers", icon: Users },
-    { label: "Kharcha", href: "/expenses", icon: ArrowDownCircle },
+    { label: "Home", href: "/", icon: LayoutDashboard },
+    { label: "POS Bill", href: "/billing", icon: Receipt },
+    { label: "Expenses", href: "/expenses", icon: ArrowDownCircle },
+    { label: "Khata", href: "/customers", icon: Users },
   ];
 
   return (

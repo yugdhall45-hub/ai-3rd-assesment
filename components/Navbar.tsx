@@ -9,6 +9,7 @@ import {
   Calendar,
   Menu,
   LogOut,
+  Bell,
 } from "lucide-react";
 import { logoutAction } from "@/lib/auth-actions";
 
@@ -78,6 +79,16 @@ export default function Navbar({
           <ArrowDownCircle className="w-3.5 h-3.5 text-rose-400 shrink-0" />
           <span className="hidden sm:inline">− Expense</span>
           <span className="sm:hidden text-[11px]">Exp</span>
+        </Link>
+
+        <Link
+          href="/notifications"
+          prefetch={true}
+          className="p-2 rounded-xl text-slate-300 hover:text-white hover:bg-slate-800 transition border border-slate-700/80 relative"
+          title="Notifications & Alerts"
+        >
+          <Bell className="w-4 h-4 text-emerald-400" />
+          <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
         </Link>
 
         <Link

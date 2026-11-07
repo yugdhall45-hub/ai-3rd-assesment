@@ -155,69 +155,69 @@ export default function InventoryPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-black tracking-tight text-slate-900 flex items-center gap-2">
+          <h2 className="text-2xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
             <Package className="w-6 h-6 text-emerald-600" />
-            <span>Dukaan ke Items & Stock Catalog</span>
+            <span>Products & Inventory Catalog</span>
           </h2>
-          <p className="text-slate-500 text-xs sm:text-sm">
-            Samaan ka selling rate, khareed daam (cost) aur bacha hua stock.
+          <p className="text-slate-500 text-xs">
+            Manage your store's item catalog, pricing, cost margins, and live stock tracking.
           </p>
         </div>
 
         <button
           onClick={handleOpenAdd}
-          className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs sm:text-sm px-4 py-2.5 rounded-xl shadow-md transition active:scale-95"
+          className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs px-4 py-2.5 rounded-xl shadow-xs transition"
         >
-          <Plus className="w-4 h-4 stroke-[2.5]" />
-          <span>+ Naya Item Jodein</span>
+          <Plus className="w-3.5 h-3.5" />
+          <span>Add New Product</span>
         </button>
       </div>
 
       {/* Valuation & Stock KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
-        <div className="bg-white p-4 sm:p-5 rounded-2xl border-2 border-slate-200 shadow-xs">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-black text-slate-700">Stock Bikri Value (Retail)</span>
-            <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
+            <span className="text-xs font-semibold text-slate-500">Retail Stock Value</span>
+            <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
               <DollarSign className="w-4 h-4" />
             </div>
           </div>
-          <div className="mt-3 text-2xl font-black text-slate-900 tracking-tight">
+          <div className="mt-3 text-2xl font-extrabold text-slate-900 tracking-tight">
             {currency}{totalRetailValue.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
           </div>
-          <div className="text-xs text-slate-400 mt-1">Samaan bechne par aane wali rashi</div>
+          <div className="text-xs text-slate-400 mt-1">Total revenue potential in current inventory</div>
         </div>
 
-        <div className="bg-white p-4 sm:p-5 rounded-2xl border-2 border-slate-200 shadow-xs">
+        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-black text-slate-700">Khareed Lagat (Wholesale Cost)</span>
-            <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
+            <span className="text-xs font-semibold text-slate-500">Wholesale Cost Value</span>
+            <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
               <Layers className="w-4 h-4" />
             </div>
           </div>
-          <div className="mt-3 text-2xl font-black text-blue-700 tracking-tight">
+          <div className="mt-3 text-2xl font-extrabold text-blue-700 tracking-tight">
             {currency}{totalWholesaleValue.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
           </div>
-          <div className="text-xs text-slate-400 mt-1">Dukaan me laga hua maal</div>
+          <div className="text-xs text-slate-400 mt-1">Total cost invested in inventory</div>
         </div>
 
-        <div className="bg-white p-4 sm:p-5 rounded-2xl border-2 border-slate-200 shadow-xs">
+        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-black text-slate-700">Stock Alert Status</span>
-            <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold ${outOfStockCount > 0 ? "bg-rose-50 text-rose-600" : "bg-amber-50 text-amber-600"}`}>
+            <span className="text-xs font-semibold text-slate-500">Stock Alerts</span>
+            <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${outOfStockCount > 0 ? "bg-rose-50 text-rose-600" : "bg-amber-50 text-amber-600"}`}>
               <AlertTriangle className="w-4 h-4" />
             </div>
           </div>
           <div className="mt-3 flex items-baseline gap-2">
-            <div className={`text-2xl font-black tracking-tight ${outOfStockCount > 0 ? "text-rose-700" : "text-amber-700"}`}>
-              {outOfStockCount > 0 ? `${outOfStockCount} Out of Stock` : `${lowStockCount} Low Stock`}
+            <div className={`text-2xl font-extrabold tracking-tight ${outOfStockCount > 0 ? "text-rose-700" : "text-amber-700"}`}>
+              {outOfStockCount > 0 ? `${outOfStockCount} Out` : `${lowStockCount} Low`}
             </div>
             {outOfStockCount > 0 && lowStockCount > 0 && (
-              <span className="text-xs text-amber-600 font-bold">({lowStockCount} kam bacha)</span>
+              <span className="text-xs text-amber-600 font-medium">({lowStockCount} low)</span>
             )}
           </div>
           <div className="text-xs text-slate-400 mt-1">
-            {outOfStockCount > 0 ? "Maal khatam ho gaya hai, turant mangwayein" : "Kam bacha hua samaan"}
+            {outOfStockCount > 0 ? "Depleted items requiring urgent re-order" : "Items with 10 units or fewer"}
           </div>
         </div>
       </div>

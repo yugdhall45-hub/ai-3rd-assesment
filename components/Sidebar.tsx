@@ -13,7 +13,12 @@ import {
   Settings,
   Store,
   LogOut,
+  ShoppingBag,
+  Building2,
+  Landmark,
+  History,
   UserCheck,
+  Bell,
   X,
 } from "lucide-react";
 import { logoutAction } from "@/lib/auth-actions";
@@ -38,15 +43,41 @@ export default function Sidebar({
 }: SidebarProps) {
   const pathname = usePathname();
 
-  const navItems = [
-    { name: "Dashboard", sub: "Aaj ka hisaab", href: "/", icon: LayoutDashboard },
-    { name: "POS & Billing", sub: "Naya Bill banayein", href: "/billing", icon: Receipt },
-    { name: "Khata Book", sub: "Grahak ka udhar hisaab", href: "/customers", icon: Users },
-    { name: "Daily Expenses", sub: "Roz ka dukan kharcha", href: "/expenses", icon: ArrowDownCircle },
-    { name: "Daybook Register", sub: "Galla & Cash audit", href: "/daybook", icon: BookOpen },
-    { name: "Inventory Items", sub: "Dukaan ka stock samaan", href: "/inventory", icon: Package },
-    { name: "Reports & Profit", sub: "Munafa & P&L report", href: "/reports", icon: BarChart3 },
-    { name: "Store Settings", sub: "Dukan naam & settings", href: "/settings", icon: Settings },
+  const navSections = [
+    {
+      title: "Core POS & Sales",
+      items: [
+        { name: "Dashboard", href: "/", icon: LayoutDashboard },
+        { name: "POS & Billing", href: "/billing", icon: Receipt },
+        { name: "Inventory & Stock", href: "/inventory", icon: Package },
+      ],
+    },
+    {
+      title: "Khata & Parties",
+      items: [
+        { name: "Debtors (Customers)", href: "/customers", icon: Users },
+        { name: "Creditors (Suppliers)", href: "/creditors", icon: Building2 },
+        { name: "Purchases (Bills)", href: "/purchases", icon: ShoppingBag },
+      ],
+    },
+    {
+      title: "Cash & Finance",
+      items: [
+        { name: "Cash Book (Galla)", href: "/daybook", icon: BookOpen },
+        { name: "Bank & UPI Accounts", href: "/bank", icon: Landmark },
+        { name: "Daily Expenses", href: "/expenses", icon: ArrowDownCircle },
+        { name: "Transactions & Audit", href: "/transactions", icon: History },
+      ],
+    },
+    {
+      title: "Store Management",
+      items: [
+        { name: "Reports & Financials", href: "/reports", icon: BarChart3 },
+        { name: "Staff Management", href: "/staff", icon: UserCheck },
+        { name: "Notifications", href: "/notifications", icon: Bell },
+        { name: "Store Settings", href: "/settings", icon: Settings },
+      ],
+    },
   ];
 
   const initials = user?.name
@@ -61,7 +92,7 @@ export default function Sidebar({
   const sidebarContent = (
     <div className="flex flex-col h-full bg-slate-900 text-slate-200">
       {/* Brand Header */}
-      <div className="p-4 sm:p-5 border-b border-slate-800/80 flex items-center justify-between">
+      <div className="p-4 border-b border-slate-800/80 flex items-center justify-between">
         <div className="flex items-center gap-3 overflow-hidden">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-500 flex items-center justify-center text-white shadow-md shadow-emerald-500/20 shrink-0">
             <Store className="w-5 h-5" />
@@ -72,7 +103,7 @@ export default function Sidebar({
             </h1>
             <p className="text-[11px] text-emerald-400 font-medium flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-              Billing & Daybook POS
+              Business Management ERP
             </p>
           </div>
         </div>
@@ -88,38 +119,39 @@ export default function Sidebar({
         )}
       </div>
 
-      {/* Navigation Links */}
-      <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
-        <div className="px-3 py-1.5 text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
-          Main Menu
-        </div>
-        {navItems.map((item) => {
-          const isActive = pathname === item.href;
-          const Icon = item.icon;
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              prefetch={true}
-              onClick={onClose}
-              className={`flex items-center gap-3 px-3.5 py-2 rounded-xl transition active:scale-95 duration-100 ${
-                isActive
-                  ? "bg-emerald-400 text-slate-950 shadow-md shadow-emerald-400/25"
-                  : "text-slate-300 hover:text-white hover:bg-slate-800"
-              }`}
-            >
-              <Icon className={`w-5 h-5 shrink-0 stroke-[2.2] ${isActive ? "text-slate-950" : "text-slate-400"}`} />
-              <div className="min-w-0">
-                <div className={`text-xs sm:text-sm font-black leading-tight truncate ${isActive ? "text-slate-950" : "text-white"}`}>
-                  {item.name}
-                </div>
-                <div className={`text-[10px] truncate ${isActive ? "text-slate-900/80 font-bold" : "text-slate-400 font-medium"}`}>
-                  {item.sub}
-                </div>
-              </div>
-            </Link>
-          );
-        })}
+      {/* Navigation Links with Section Groups */}
+      <nav className="flex-1 p-3 space-y-4 overflow-y-auto">
+        {navSections.map((sec, idx) => (
+          <div key={idx} className="space-y-1">
+            <div className="px-3 py-1 text-[10px] font-black text-slate-400 uppercase tracking-wider">
+              {sec.title}
+            </div>
+            {sec.items.map((item) => {
+              const isActive = pathname === item.href;
+              const Icon = item.icon;
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  prefetch={true}
+                  onClick={onClose}
+                  className={`flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-bold transition active:scale-95 duration-100 ${
+                    isActive
+                      ? "bg-emerald-400 text-slate-950 shadow-md shadow-emerald-400/25 font-black"
+                      : "text-slate-300 hover:text-white hover:bg-slate-800"
+                  }`}
+                >
+                  <Icon
+                    className={`w-4 h-4 stroke-[2.2] shrink-0 ${
+                      isActive ? "text-slate-950" : "text-slate-400"
+                    }`}
+                  />
+                  <span className="truncate">{item.name}</span>
+                </Link>
+              );
+            })}
+          </div>
+        ))}
       </nav>
 
       {/* User Session & Logout Footer */}
@@ -147,15 +179,6 @@ export default function Sidebar({
             </form>
           </div>
         )}
-
-        <div className="flex items-center justify-between px-2 text-[11px] text-slate-500">
-          <span>
-            Currency: <strong className="text-emerald-400">{currency}</strong>
-          </span>
-          <span className="flex items-center gap-1 text-slate-400">
-            <UserCheck className="w-3 h-3 text-emerald-500" /> Private Store
-          </span>
-        </div>
       </div>
     </div>
   );
@@ -163,20 +186,18 @@ export default function Sidebar({
   return (
     <>
       {/* Desktop Persistent Sidebar */}
-      <aside className="hidden md:flex w-64 flex-col border-r border-slate-800 no-print flex-shrink-0 h-screen">
+      <aside className="hidden md:flex flex-col w-64 bg-slate-900 border-r border-slate-800 shrink-0 sticky top-0 h-screen no-print z-20">
         {sidebarContent}
       </aside>
 
-      {/* Mobile Slide-over Drawer */}
+      {/* Mobile Off-Canvas Drawer */}
       {mobileOpen && (
-        <div className="fixed inset-0 z-50 md:hidden no-print">
-          {/* Backdrop overlay */}
+        <div className="md:hidden fixed inset-0 z-50 flex">
           <div
             className="fixed inset-0 bg-slate-950/70 backdrop-blur-xs transition-opacity"
             onClick={onClose}
           />
-          {/* Drawer container */}
-          <div className="relative w-72 max-w-[85vw] h-full shadow-2xl z-10 animate-in slide-in-from-left duration-200">
+          <div className="relative flex flex-col w-4/5 max-w-xs h-full bg-slate-900 shadow-2xl z-10 animate-in slide-in-from-left duration-200">
             {sidebarContent}
           </div>
         </div>
