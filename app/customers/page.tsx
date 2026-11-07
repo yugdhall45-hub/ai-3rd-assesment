@@ -131,63 +131,63 @@ export default function CustomersPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
+          <h2 className="text-2xl font-black tracking-tight text-slate-900 flex items-center gap-2">
             <Users className="w-6 h-6 text-emerald-600" />
-            <span>Customers & Khata (Udhar) Ledger</span>
+            <span>Khata Book • Grahak Udhar Hisaab</span>
           </h2>
-          <p className="text-slate-500 text-xs">
-            Manage customer credit accounts, track pending debts, and record repayments.
+          <p className="text-slate-500 text-xs sm:text-sm">
+            Kaunse grahak par kitna udhar baaki hai, aur kisne kitna payment diya.
           </p>
         </div>
 
         <button
           onClick={() => setShowAddModal(true)}
-          className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs px-4 py-2.5 rounded-xl shadow-xs transition"
+          className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs sm:text-sm px-4 py-2.5 rounded-xl shadow-md transition active:scale-95"
         >
-          <Plus className="w-3.5 h-3.5" />
-          <span>Add New Customer</span>
+          <Plus className="w-4 h-4 stroke-[2.5]" />
+          <span>+ Naya Grahak Jodein</span>
         </button>
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+        <div className="bg-white p-4 sm:p-5 rounded-2xl border-2 border-amber-200 shadow-xs">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-500">Total Khata Outstanding</span>
-            <div className="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center">
+            <span className="text-xs font-black text-amber-800">Total Udhar Baaki</span>
+            <div className="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center font-bold">
               <CreditCard className="w-4 h-4" />
             </div>
           </div>
-          <div className="mt-3 text-2xl font-extrabold text-amber-700 tracking-tight">
+          <div className="mt-3 text-2xl font-black text-amber-700 tracking-tight">
             {currency}{totalOutstanding.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
           </div>
-          <div className="text-xs text-slate-400 mt-1">Pending payments to collect</div>
+          <div className="text-xs text-amber-800/80 mt-1 font-semibold">Grahako se lena baaki hai</div>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
+        <div className="bg-white p-4 sm:p-5 rounded-2xl border-2 border-slate-200 shadow-xs">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-500">Customers with Dues</span>
-            <div className="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center">
+            <span className="text-xs font-black text-slate-700">Udhar Wale Grahak</span>
+            <div className="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center font-bold">
               <AlertCircle className="w-4 h-4" />
             </div>
           </div>
-          <div className="mt-3 text-2xl font-extrabold text-slate-900 tracking-tight">
-            {customersWithDues.length}
+          <div className="mt-3 text-2xl font-black text-slate-900 tracking-tight">
+            {customersWithDues.length} grahak
           </div>
-          <div className="text-xs text-slate-400 mt-1">Customers owing credit balances</div>
+          <div className="text-xs text-slate-400 mt-1">Jinka udhar pending hai</div>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
+        <div className="bg-white p-4 sm:p-5 rounded-2xl border-2 border-slate-200 shadow-xs">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-500">Total Registered</span>
-            <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
+            <span className="text-xs font-black text-slate-700">Total Khata Grahak</span>
+            <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
               <Users className="w-4 h-4" />
             </div>
           </div>
-          <div className="mt-3 text-2xl font-extrabold text-slate-900 tracking-tight">
+          <div className="mt-3 text-2xl font-black text-slate-900 tracking-tight">
             {customers.length}
           </div>
-          <div className="text-xs text-slate-400 mt-1">In store customer book</div>
+          <div className="text-xs text-slate-400 mt-1">Dukaan ke registered grahak</div>
         </div>
       </div>
 
@@ -294,13 +294,13 @@ export default function CustomersPage() {
                               setActivePaymentCustomer(cust);
                               setPayAmount(String(cust.totalDues));
                             }}
-                            className="inline-flex items-center gap-1 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-lg text-xs shadow-xs transition"
+                            className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-black rounded-xl text-xs shadow-md transition active:scale-95"
                           >
-                            <DollarSign className="w-3.5 h-3.5" />
-                            <span>Record Payment</span>
+                            <DollarSign className="w-3.5 h-3.5 stroke-[2.5]" />
+                            <span>₹ Jama Karein (Collect)</span>
                           </button>
                         ) : (
-                          <span className="text-slate-400 text-xs">No dues</span>
+                          <span className="text-slate-400 text-xs font-semibold">Koi udhar nahi</span>
                         )}
                       </td>
                     </tr>

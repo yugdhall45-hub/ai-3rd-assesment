@@ -39,14 +39,14 @@ export default function Sidebar({
   const pathname = usePathname();
 
   const navItems = [
-    { name: "Dashboard", href: "/", icon: LayoutDashboard },
-    { name: "POS & Billing", href: "/billing", icon: Receipt },
-    { name: "Daily Expenses", href: "/expenses", icon: ArrowDownCircle },
-    { name: "Daybook Register", href: "/daybook", icon: BookOpen },
-    { name: "Customers & Khata", href: "/customers", icon: Users },
-    { name: "Inventory Items", href: "/inventory", icon: Package },
-    { name: "Reports & Analytics", href: "/reports", icon: BarChart3 },
-    { name: "Store Settings", href: "/settings", icon: Settings },
+    { name: "Dashboard", sub: "Aaj ka hisaab", href: "/", icon: LayoutDashboard },
+    { name: "POS & Billing", sub: "Naya Bill banayein", href: "/billing", icon: Receipt },
+    { name: "Khata Book", sub: "Grahak ka udhar hisaab", href: "/customers", icon: Users },
+    { name: "Daily Expenses", sub: "Roz ka dukan kharcha", href: "/expenses", icon: ArrowDownCircle },
+    { name: "Daybook Register", sub: "Galla & Cash audit", href: "/daybook", icon: BookOpen },
+    { name: "Inventory Items", sub: "Dukaan ka stock samaan", href: "/inventory", icon: Package },
+    { name: "Reports & Profit", sub: "Munafa & P&L report", href: "/reports", icon: BarChart3 },
+    { name: "Store Settings", sub: "Dukan naam & settings", href: "/settings", icon: Settings },
   ];
 
   const initials = user?.name
@@ -102,14 +102,21 @@ export default function Sidebar({
               href={item.href}
               prefetch={true}
               onClick={onClose}
-              className={`flex items-center gap-3 px-3.5 py-3 rounded-xl text-xs sm:text-sm font-bold transition active:scale-95 duration-100 ${
+              className={`flex items-center gap-3 px-3.5 py-2 rounded-xl transition active:scale-95 duration-100 ${
                 isActive
-                  ? "bg-emerald-400 text-slate-950 shadow-md shadow-emerald-400/25 font-black"
+                  ? "bg-emerald-400 text-slate-950 shadow-md shadow-emerald-400/25"
                   : "text-slate-300 hover:text-white hover:bg-slate-800"
               }`}
             >
-              <Icon className={`w-4 h-4 stroke-[2.2] ${isActive ? "text-slate-950" : "text-slate-400"}`} />
-              <span>{item.name}</span>
+              <Icon className={`w-5 h-5 shrink-0 stroke-[2.2] ${isActive ? "text-slate-950" : "text-slate-400"}`} />
+              <div className="min-w-0">
+                <div className={`text-xs sm:text-sm font-black leading-tight truncate ${isActive ? "text-slate-950" : "text-white"}`}>
+                  {item.name}
+                </div>
+                <div className={`text-[10px] truncate ${isActive ? "text-slate-900/80 font-bold" : "text-slate-400 font-medium"}`}>
+                  {item.sub}
+                </div>
+              </div>
             </Link>
           );
         })}

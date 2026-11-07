@@ -108,28 +108,28 @@ export default function DashboardPage() {
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
       {/* Header Banner */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-gradient-to-r from-slate-900 via-slate-800 to-emerald-950 p-6 rounded-2xl text-white shadow-md">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-gradient-to-r from-slate-900 via-slate-800 to-emerald-950 p-5 sm:p-6 rounded-2xl text-white shadow-md">
         <div>
           <div className="flex items-center gap-2">
-            <span className="text-emerald-400 text-xs font-semibold uppercase tracking-wider">
-              Daily Business Dashboard
+            <span className="text-emerald-400 text-xs font-black uppercase tracking-wider">
+              Dukaan ka Dashboard • Daily Counter
             </span>
             {isRefreshing && (
               <span className="inline-flex items-center gap-1 text-[10px] text-emerald-300 bg-emerald-950/60 border border-emerald-500/30 px-2 py-0.5 rounded-full animate-pulse">
-                <RefreshCw className="w-2.5 h-2.5 animate-spin" /> Syncing
+                <RefreshCw className="w-2.5 h-2.5 animate-spin" /> Syncing...
               </span>
             )}
           </div>
-          <h2 className="text-2xl font-bold tracking-tight mt-1">{profile.name}</h2>
-          <p className="text-slate-300 text-sm mt-1">
-            Track daily billing, cash flows, expenses, and daybook closing in one place.
+          <h2 className="text-2xl font-black tracking-tight mt-1">{profile.name}</h2>
+          <p className="text-slate-300 text-xs sm:text-sm mt-1">
+            Roz ki bikri, kharcha, galle ka cash aur udhar khata ek jagah.
           </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
           <button
             onClick={() => loadData(false)}
             disabled={isRefreshing}
-            className="p-2.5 bg-white/10 hover:bg-white/20 text-white rounded-xl border border-white/10 transition"
+            className="p-2.5 bg-white/10 hover:bg-white/20 text-white rounded-xl border border-white/10 transition active:scale-95"
             title="Refresh Data"
           >
             <RefreshCw className={`w-4 h-4 ${isRefreshing ? "animate-spin text-emerald-400" : ""}`} />
@@ -137,18 +137,26 @@ export default function DashboardPage() {
           <Link
             href="/billing"
             prefetch={true}
-            className="inline-flex items-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold text-sm px-4 py-2.5 rounded-xl transition shadow-md shadow-emerald-500/20"
+            className="inline-flex items-center gap-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs sm:text-sm px-4 py-2.5 rounded-xl transition shadow-md shadow-emerald-500/20 active:scale-95"
           >
-            <Receipt className="w-4 h-4" />
-            <span>Create Bill</span>
+            <Receipt className="w-4 h-4 stroke-[2.5]" />
+            <span>+ Naya Bill</span>
           </Link>
           <Link
-            href="/daybook"
+            href="/expenses?tab=expense&new=true"
             prefetch={true}
-            className="inline-flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white font-medium text-sm px-4 py-2.5 rounded-xl border border-white/10 transition"
+            className="inline-flex items-center gap-1.5 bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/40 font-bold text-xs sm:text-sm px-3.5 py-2.5 rounded-xl transition active:scale-95"
           >
-            <span>Daybook Register</span>
-            <ArrowRight className="w-4 h-4" />
+            <ArrowDownCircle className="w-4 h-4 text-rose-400" />
+            <span>− Kharcha</span>
+          </Link>
+          <Link
+            href="/customers"
+            prefetch={true}
+            className="inline-flex items-center gap-1.5 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 font-bold text-xs sm:text-sm px-3.5 py-2.5 rounded-xl transition active:scale-95"
+          >
+            <CreditCard className="w-4 h-4 text-amber-400" />
+            <span>Khata</span>
           </Link>
         </div>
       </div>
@@ -156,95 +164,96 @@ export default function DashboardPage() {
       {/* 5 Key Metric Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
         {/* Card 1: Today's Revenue */}
-        <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-xs">
+        <div className="bg-white p-4 sm:p-5 rounded-2xl border-2 border-slate-200/80 shadow-xs">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-500">Today's Sales</span>
-            <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
+            <span className="text-xs font-black text-slate-700">Aaj ki Bikri (Sales)</span>
+            <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
               <ShoppingBag className="w-4 h-4" />
             </div>
           </div>
           <div className="mt-3">
-            <div className="text-2xl font-extrabold text-slate-900 tracking-tight">
+            <div className="text-2xl font-black text-slate-900 tracking-tight">
               {currency}{todaySales.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
             </div>
-            <div className="text-xs text-slate-500 mt-1 flex items-center gap-1">
-              <span className="font-medium text-emerald-600">{invoices.length} bills</span> created today
+            <div className="text-xs text-slate-500 mt-1 font-medium">
+              <span className="font-bold text-emerald-600">{invoices.length} bills</span> bane aaj
             </div>
           </div>
         </div>
 
         {/* Card 2: Today's Expenses */}
-        <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-xs">
+        <div className="bg-white p-4 sm:p-5 rounded-2xl border-2 border-slate-200/80 shadow-xs">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-500">Today's Expenses</span>
-            <div className="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center">
+            <span className="text-xs font-black text-slate-700">Aaj ka Kharcha</span>
+            <div className="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center font-bold">
               <ArrowDownCircle className="w-4 h-4" />
             </div>
           </div>
           <div className="mt-3">
-            <div className="text-2xl font-extrabold text-slate-900 tracking-tight">
-              {currency}{todayExpenses.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
+            <div className="text-2xl font-black text-rose-600 tracking-tight">
+              −{currency}{todayExpenses.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
             </div>
-            <div className="text-xs text-slate-500 mt-1 flex items-center gap-1">
-              <span className="font-medium text-rose-600">{expenses.length} entries</span> recorded
+            <div className="text-xs text-slate-500 mt-1 font-medium">
+              <span className="font-bold text-rose-600">{expenses.length} entries</span> likhi gayi
             </div>
           </div>
         </div>
 
         {/* Card 3: Today's Net Profit */}
-        <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-xs">
+        <div className="bg-white p-4 sm:p-5 rounded-2xl border-2 border-slate-200/80 shadow-xs">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-500">Net Profit Today</span>
-            <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+            <span className="text-xs font-black text-slate-700">Aaj ka Munafa</span>
+            <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold ${
               todayNetProfit >= 0 ? "bg-teal-50 text-teal-600" : "bg-amber-50 text-amber-600"
             }`}>
               <TrendingUp className="w-4 h-4" />
             </div>
           </div>
           <div className="mt-3">
-            <div className={`text-2xl font-extrabold tracking-tight ${
+            <div className={`text-2xl font-black tracking-tight ${
               todayNetProfit >= 0 ? "text-emerald-700" : "text-amber-700"
             }`}>
-              {currency}{todayNetProfit.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
+              {todayNetProfit >= 0 ? "+" : "−"}
+              {currency}{Math.abs(todayNetProfit).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
             </div>
-            <div className="text-xs text-slate-500 mt-1">
-              Sales + Incomes − Expenses
+            <div className="text-xs text-slate-500 mt-1 font-medium">
+              Bikri − Kharcha
             </div>
           </div>
         </div>
 
         {/* Card 4: Expected Cash in Drawer */}
-        <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-xs">
+        <div className="bg-white p-4 sm:p-5 rounded-2xl border-2 border-slate-200/80 shadow-xs">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-500">Cash in Drawer</span>
-            <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
+            <span className="text-xs font-black text-slate-700">Galle me Cash</span>
+            <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
               <Wallet className="w-4 h-4" />
             </div>
           </div>
           <div className="mt-3">
-            <div className="text-2xl font-extrabold text-slate-900 tracking-tight">
+            <div className="text-2xl font-black text-slate-900 tracking-tight">
               {currency}{expectedCashInDrawer.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
             </div>
-            <div className="text-xs text-slate-500 mt-1">
-              Opening cash + today's cash in
+            <div className="text-xs text-slate-500 mt-1 font-medium">
+              Drawer me hona chahiye
             </div>
           </div>
         </div>
 
         {/* Card 5: Khata Dues */}
-        <div className="col-span-2 lg:col-span-1 bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-xs">
+        <div className="col-span-2 lg:col-span-1 bg-white p-4 sm:p-5 rounded-2xl border-2 border-amber-200 shadow-xs">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-500">Total Khata Dues</span>
-            <div className="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center">
+            <span className="text-xs font-black text-amber-800">Market me Udhar (Khata)</span>
+            <div className="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center font-bold">
               <CreditCard className="w-4 h-4" />
             </div>
           </div>
           <div className="mt-3">
-            <div className="text-2xl font-extrabold text-amber-700 tracking-tight">
+            <div className="text-2xl font-black text-amber-700 tracking-tight">
               {currency}{totalCustomerDues.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
             </div>
-            <div className="text-xs text-slate-500 mt-1">
-              Pending credit across customers
+            <div className="text-xs text-amber-700/80 mt-1 font-bold">
+              Grahako se lena baaki hai
             </div>
           </div>
         </div>

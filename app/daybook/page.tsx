@@ -158,12 +158,12 @@ export default function DaybookPage() {
       {/* Top Header & Date Stepper */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
+          <h2 className="text-2xl font-black tracking-tight text-slate-900 flex items-center gap-2">
             <BookOpen className="w-6 h-6 text-emerald-600" />
-            <span>Daily Business Daybook & Cash Register</span>
+            <span>Dukaan ka Galla & Daybook Register</span>
           </h2>
-          <p className="text-slate-500 text-xs">
-            Complete daily audit trail, cash drawer balance, and chronological activity ledger.
+          <p className="text-slate-500 text-xs sm:text-sm">
+            Roz dukaan badhane (close karne) ke waqt galle ka cash ginein aur hisaab match karein.
           </p>
         </div>
 
@@ -328,19 +328,19 @@ export default function DaybookPage() {
                 {countedCash !== null && (
                   <div className="mt-2 p-3 rounded-xl border text-xs">
                     {cashDifference === 0 ? (
-                      <div className="flex items-center gap-2 text-emerald-700 bg-emerald-50 p-2 rounded-lg font-bold">
-                        <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                        <span>Exact Match! Zero difference in cash register.</span>
+                      <div className="flex items-center gap-2 text-emerald-800 bg-emerald-100 p-2.5 rounded-lg font-black text-xs">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                        <span>✅ Ekdam Sahi! Galle ka cash bilkul barabar match ho gaya hai.</span>
                       </div>
                     ) : cashDifference! < 0 ? (
-                      <div className="flex items-center gap-2 text-rose-700 bg-rose-50 p-2 rounded-lg font-bold">
-                        <AlertTriangle className="w-4 h-4 text-rose-600" />
-                        <span>Shortage: Drawer has {currency}{Math.abs(cashDifference!).toFixed(2)} less than expected!</span>
+                      <div className="flex items-center gap-2 text-rose-800 bg-rose-100 p-2.5 rounded-lg font-black text-xs">
+                        <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0" />
+                        <span>⚠️ Kami (Shortage): Galle me {currency}{Math.abs(cashDifference!).toFixed(2)} kam hai!</span>
                       </div>
                     ) : (
-                      <div className="flex items-center gap-2 text-teal-700 bg-teal-50 p-2 rounded-lg font-bold">
-                        <CheckCircle2 className="w-4 h-4 text-teal-600" />
-                        <span>Excess: Drawer has {currency}{cashDifference!.toFixed(2)} surplus cash!</span>
+                      <div className="flex items-center gap-2 text-teal-800 bg-teal-100 p-2.5 rounded-lg font-black text-xs">
+                        <CheckCircle2 className="w-4 h-4 text-teal-600 shrink-0" />
+                        <span>💵 Zyada Cash (Surplus): Galle me {currency}{cashDifference!.toFixed(2)} extra cash hai.</span>
                       </div>
                     )}
                   </div>
