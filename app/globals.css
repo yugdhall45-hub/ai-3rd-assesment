@@ -61,11 +61,11 @@ tbody tr {
 
 /* POS High-Contrast Retail Elements */
 .pos-keypad-btn {
-  @apply bg-slate-900 text-white font-extrabold text-base sm:text-lg rounded-xl py-3 active:scale-95 transition-transform flex items-center justify-center border border-slate-800 shadow-xs hover:bg-slate-800;
+  @apply bg-slate-900 text-white font-extrabold text-base sm:text-lg rounded-xl py-3 active:scale-95 transition-transform flex items-center justify-center border border-slate-800 shadow-sm hover:bg-slate-800;
 }
 
 .pos-action-btn {
-  @apply font-extrabold text-xs sm:text-sm rounded-xl py-2.5 px-3 active:scale-95 transition-transform flex items-center justify-center gap-1.5 shadow-xs;
+  @apply font-extrabold text-xs sm:text-sm rounded-xl py-2.5 px-3 active:scale-95 transition-transform flex items-center justify-center gap-1.5 shadow-sm;
 }
 
 /* Custom scrollbars - optimized for high-refresh displays */

@@ -14,7 +14,7 @@ interface DaybookCacheEntry {
 let serverDaybookCache: DaybookCacheEntry | null = null;
 let serverCustomerDuesCache: { userId: string; dues: number; ts: number } | null = null;
 
-export function invalidateBusinessCache() {
+export async function invalidateBusinessCache() {
   serverDaybookCache = null;
   serverCustomerDuesCache = null;
 }
