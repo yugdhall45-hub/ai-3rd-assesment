@@ -34,12 +34,22 @@ interface CartItem {
   total: number;
 }
 
+// In-memory client cache to make route switching between Dashboard & POS 100% instantaneous without jitter
+let cachedBillingData: {
+  products: any[];
+  customers: any[];
+  invoices: any[];
+  profile: any;
+} | null = null;
+
 export default function BillingPage() {
-  const [products, setProducts] = useState<any[]>([]);
-  const [customers, setCustomers] = useState<any[]>([]);
-  const [invoices, setInvoices] = useState<any[]>([]);
-  const [profile, setProfile] = useState<any>({ name: "SmartBazaar Local Mart", currency: "₹", taxRate: 5 });
-  const [loading, setLoading] = useState(true);
+  const [products, setProducts] = useState<any[]>(() => cachedBillingData?.products || []);
+  const [customers, setCustomers] = useState<any[]>(() => cachedBillingData?.customers || []);
+  const [invoices, setInvoices] = useState<any[]>(() => cachedBillingData?.invoices || []);
+  const [profile, setProfile] = useState<any>(
+    () => cachedBillingData?.profile || { name: "SmartBazaar Local Mart", currency: "₹", taxRate: 5 }
+  );
+  const [loading, setLoading] = useState(!cachedBillingData);
 
   // Active Tab: 'pos' or 'history'
   const [activeTab, setActiveTab] = useState<"pos" | "history">("pos");
@@ -83,8 +93,8 @@ export default function BillingPage() {
 
   const currency = profile.currency || "₹";
 
-  const loadData = async () => {
-    setLoading(true);
+  const loadData = async (silent = false) => {
+    if (!silent && !cachedBillingData) setLoading(true);
     try {
       const [prods, custs, invs, prof] = await Promise.all([
         getProducts(),
@@ -96,6 +106,7 @@ export default function BillingPage() {
       setCustomers(custs);
       setInvoices(invs);
       setProfile(prof);
+      cachedBillingData = { products: prods, customers: custs, invoices: invs, profile: prof };
     } catch (err) {
       console.error(err);
     } finally {
@@ -104,7 +115,8 @@ export default function BillingPage() {
   };
 
   useEffect(() => {
-    loadData();
+    // If cached data is already present, fetch silently in background (stale-while-revalidate)
+    loadData(Boolean(cachedBillingData));
   }, []);
 
   // Cart Calculations
@@ -276,8 +288,8 @@ export default function BillingPage() {
         setPrintMode(mode);
       }
 
-      // Sync data in background
-      loadData();
+      // Sync data in background silently
+      loadData(true);
     } catch (err) {
       console.error(err);
       alert("Failed to save bill. Please try again.");

@@ -46,6 +46,12 @@ const INCOME_SOURCES = [
   "Miscellaneous Income",
 ];
 
+let cachedExpensesData: {
+  expenses: any[];
+  incomes: any[];
+  profile: any;
+} | null = null;
+
 function ExpensesContent() {
   const searchParams = useSearchParams();
   const tabParam = searchParams.get("tab");
@@ -53,10 +59,10 @@ function ExpensesContent() {
   const titleInputRef = useRef<HTMLInputElement>(null);
 
   const [activeTab, setActiveTab] = useState<"expense" | "income">("expense");
-  const [expenses, setExpenses] = useState<any[]>([]);
-  const [incomes, setIncomes] = useState<any[]>([]);
-  const [profile, setProfile] = useState<any>({ currency: "₹" });
-  const [loading, setLoading] = useState(true);
+  const [expenses, setExpenses] = useState<any[]>(() => cachedExpensesData?.expenses || []);
+  const [incomes, setIncomes] = useState<any[]>(() => cachedExpensesData?.incomes || []);
+  const [profile, setProfile] = useState<any>(() => cachedExpensesData?.profile || { currency: "₹" });
+  const [loading, setLoading] = useState(!cachedExpensesData);
 
   // Sync query parameters (?tab=expense|income&new=true)
   useEffect(() => {

@@ -70,6 +70,7 @@ export default function Navbar({
       <div className="flex items-center gap-1.5 sm:gap-2.5">
         <Link
           href="/expenses?tab=expense&new=true"
+          prefetch={true}
           className="inline-flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 transition-colors"
           title="Add Expense"
         >
@@ -80,6 +81,7 @@ export default function Navbar({
 
         <Link
           href="/expenses?tab=income&new=true"
+          prefetch={true}
           className="inline-flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold bg-teal-50 text-teal-700 hover:bg-teal-100 border border-teal-200 transition-colors"
           title="Add Other Income"
         >
@@ -90,6 +92,7 @@ export default function Navbar({
 
         <Link
           href="/billing"
+          prefetch={true}
           className="inline-flex items-center gap-1 sm:gap-1.5 px-3 sm:px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-emerald-600 text-white hover:bg-emerald-700 shadow-xs transition-colors"
           title="New POS Bill"
         >

@@ -20,7 +20,8 @@ import {
   getTotalCustomerDues,
 } from "@/lib/actions";
 
-export const dynamic = "force-dynamic";
+// Enable instant client-side route caching & prefetching
+export const revalidate = 0;
 
 export default async function DashboardPage() {
   const profile = await getBusinessProfile();
