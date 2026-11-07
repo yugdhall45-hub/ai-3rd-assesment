@@ -1,3 +1,6 @@
+"use client";
+
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import {
   Receipt,
@@ -7,10 +10,10 @@ import {
   TrendingUp,
   CreditCard,
   ShoppingBag,
-  Clock,
   ArrowRight,
   AlertCircle,
   CheckCircle2,
+  RefreshCw,
 } from "lucide-react";
 import {
   getBusinessProfile,
@@ -20,44 +23,126 @@ import {
   getTotalCustomerDues,
 } from "@/lib/actions";
 
-// Enable instant client-side route caching & prefetching
-export const revalidate = 0;
+interface DashboardData {
+  profile: any;
+  daybookData: any;
+  totalCustomerDues: number;
+  invoices: any[];
+  expenses: any[];
+}
 
-export default async function DashboardPage() {
-  const profile = await getBusinessProfile();
-  const currency = profile.currency;
-  const today = new Date().toISOString().split("T")[0];
+// Module-level in-memory cache for instant 0ms transitions between Dashboard & POS
+let cachedDashboardData: DashboardData | null = null;
 
-  // Parallel optimized data fetching without duplicate N+1 queries
-  const [daybookData, totalCustomerDues, invoices, expenses] = await Promise.all([
-    getDaybook(today),
-    getTotalCustomerDues(),
-    getInvoices(10, today),
-    getExpenses(10, today),
-  ]);
+export default function DashboardPage() {
+  const [data, setData] = useState<DashboardData | null>(() => cachedDashboardData);
+  const [loading, setLoading] = useState(!cachedDashboardData);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
-  // Fast pre-aggregated metrics from daybook register
+  const loadData = async (silent = false) => {
+    if (!silent && !cachedDashboardData) {
+      setLoading(true);
+    } else {
+      setIsRefreshing(true);
+    }
+
+    try {
+      const today = new Date().toISOString().split("T")[0];
+      const [profile, daybookData, totalCustomerDues, invoices, expenses] = await Promise.all([
+        getBusinessProfile(),
+        getDaybook(today),
+        getTotalCustomerDues(),
+        getInvoices(10, today),
+        getExpenses(10, today),
+      ]);
+
+      const fresh: DashboardData = {
+        profile,
+        daybookData,
+        totalCustomerDues,
+        invoices,
+        expenses,
+      };
+
+      cachedDashboardData = fresh;
+      setData(fresh);
+    } catch (err) {
+      console.error("Dashboard fetch error:", err);
+    } finally {
+      setLoading(false);
+      setIsRefreshing(false);
+    }
+  };
+
+  useEffect(() => {
+    // Stale-while-revalidate: if cache exists, revalidate silently without screen flash
+    loadData(Boolean(cachedDashboardData));
+  }, []);
+
+  if (loading && !data) {
+    return (
+      <div className="space-y-6 max-w-7xl mx-auto opacity-70">
+        <div className="h-32 bg-slate-200/80 rounded-2xl w-full animate-pulse" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+          {[1, 2, 3, 4, 5].map((i) => (
+            <div key={i} className="h-28 bg-slate-100 border border-slate-200 rounded-2xl animate-pulse" />
+          ))}
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2 h-72 bg-slate-100 rounded-2xl animate-pulse" />
+          <div className="h-72 bg-slate-100 rounded-2xl animate-pulse" />
+        </div>
+      </div>
+    );
+  }
+
+  const profile = data?.profile || { name: "SmartBazaar Local Mart", currency: "₹" };
+  const currency = profile.currency || "₹";
+  const daybookData = data?.daybookData || {
+    metrics: { totalSalesAllModes: 0, totalExpensesAllModes: 0, netDailyProfit: 0, expectedCash: 0, totalCashIn: 0, totalCashOut: 0 },
+    register: { isClosed: false },
+  };
+  const totalCustomerDues = data?.totalCustomerDues || 0;
+  const invoices = data?.invoices || [];
+  const expenses = data?.expenses || [];
+
   const todaySales = daybookData.metrics.totalSalesAllModes;
   const todayExpenses = daybookData.metrics.totalExpensesAllModes;
   const todayNetProfit = daybookData.metrics.netDailyProfit;
   const expectedCashInDrawer = daybookData.metrics.expectedCash;
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto">
+    <div className="space-y-6 max-w-7xl mx-auto transition-opacity duration-200">
       {/* Header Banner */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-gradient-to-r from-slate-900 via-slate-800 to-emerald-950 p-6 rounded-2xl text-white shadow-md">
         <div>
-          <span className="text-emerald-400 text-xs font-semibold uppercase tracking-wider">
-            Daily Business Dashboard
-          </span>
+          <div className="flex items-center gap-2">
+            <span className="text-emerald-400 text-xs font-semibold uppercase tracking-wider">
+              Daily Business Dashboard
+            </span>
+            {isRefreshing && (
+              <span className="inline-flex items-center gap-1 text-[10px] text-emerald-300 bg-emerald-950/60 border border-emerald-500/30 px-2 py-0.5 rounded-full animate-pulse">
+                <RefreshCw className="w-2.5 h-2.5 animate-spin" /> Syncing
+              </span>
+            )}
+          </div>
           <h2 className="text-2xl font-bold tracking-tight mt-1">{profile.name}</h2>
           <p className="text-slate-300 text-sm mt-1">
             Track daily billing, cash flows, expenses, and daybook closing in one place.
           </p>
         </div>
         <div className="flex items-center gap-3">
+          <button
+            onClick={() => loadData(false)}
+            disabled={isRefreshing}
+            className="p-2.5 bg-white/10 hover:bg-white/20 text-white rounded-xl border border-white/10 transition"
+            title="Refresh Data"
+          >
+            <RefreshCw className={`w-4 h-4 ${isRefreshing ? "animate-spin text-emerald-400" : ""}`} />
+          </button>
           <Link
             href="/billing"
+            prefetch={true}
             className="inline-flex items-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold text-sm px-4 py-2.5 rounded-xl transition shadow-md shadow-emerald-500/20"
           >
             <Receipt className="w-4 h-4" />
@@ -65,6 +150,7 @@ export default async function DashboardPage() {
           </Link>
           <Link
             href="/daybook"
+            prefetch={true}
             className="inline-flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white font-medium text-sm px-4 py-2.5 rounded-xl border border-white/10 transition"
           >
             <span>Daybook Register</span>
@@ -181,6 +267,7 @@ export default async function DashboardPage() {
             </div>
             <Link
               href="/billing"
+              prefetch={true}
               className="text-xs font-semibold text-emerald-600 hover:text-emerald-700 flex items-center gap-1"
             >
               <span>Go to POS</span>
@@ -195,6 +282,7 @@ export default async function DashboardPage() {
                 <p className="text-sm font-medium">No bills generated today yet.</p>
                 <Link
                   href="/billing"
+                  prefetch={true}
                   className="mt-3 inline-block text-xs font-semibold text-emerald-600 hover:underline"
                 >
                   Create first bill now
@@ -212,7 +300,7 @@ export default async function DashboardPage() {
                         {inv.customerName}
                       </div>
                       <div className="text-xs text-slate-400 flex items-center gap-2 mt-0.5">
-                        <span>{inv.items.length} items</span>
+                        <span>{inv.items?.length || 0} items</span>
                         <span>•</span>
                         <span className="uppercase text-[11px] font-medium bg-slate-100 px-1.5 py-0.5 rounded text-slate-600">
                           {inv.paymentMethod}
@@ -260,6 +348,7 @@ export default async function DashboardPage() {
               </div>
               <Link
                 href="/expenses"
+                prefetch={true}
                 className="text-xs font-semibold text-emerald-600 hover:text-emerald-700"
               >
                 + Add
@@ -296,7 +385,7 @@ export default async function DashboardPage() {
                 Daybook Cash Status
               </span>
               <span className="bg-white/20 text-white text-[11px] font-semibold px-2 py-0.5 rounded">
-                {daybookData.register.isClosed ? "Day Closed" : "Open Day"}
+                {daybookData.register?.isClosed ? "Day Closed" : "Open Day"}
               </span>
             </div>
             <div className="mt-4">
@@ -311,18 +400,19 @@ export default async function DashboardPage() {
             <div className="mt-5 pt-4 border-t border-emerald-500/50 flex items-center justify-between">
               <span className="text-xs text-emerald-100">Daily Cash In:</span>
               <span className="text-xs font-bold">
-                +{currency}{daybookData.metrics.totalCashIn.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
+                +{currency}{daybookData.metrics?.totalCashIn?.toLocaleString("en-IN", { minimumFractionDigits: 2 }) || "0.00"}
               </span>
             </div>
             <div className="mt-2 flex items-center justify-between">
               <span className="text-xs text-emerald-100">Daily Cash Out:</span>
               <span className="text-xs font-bold text-rose-200">
-                −{currency}{daybookData.metrics.totalCashOut.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
+                −{currency}{daybookData.metrics?.totalCashOut?.toLocaleString("en-IN", { minimumFractionDigits: 2 }) || "0.00"}
               </span>
             </div>
 
             <Link
               href="/daybook"
+              prefetch={true}
               className="mt-5 w-full bg-white text-emerald-800 hover:bg-emerald-50 font-semibold text-xs py-2.5 rounded-xl block text-center transition"
             >
               Reconcile & Close Day
@@ -333,4 +423,3 @@ export default async function DashboardPage() {
     </div>
   );
 }
-

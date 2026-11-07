@@ -21,10 +21,13 @@ import {
   getBusinessProfile,
 } from "@/lib/actions";
 
+// Module-level in-memory cache for instant 0ms tab switching
+let cachedInventoryData: { products: any[]; profile: any } | null = null;
+
 export default function InventoryPage() {
-  const [products, setProducts] = useState<any[]>([]);
-  const [profile, setProfile] = useState<any>({ currency: "₹" });
-  const [loading, setLoading] = useState(true);
+  const [products, setProducts] = useState<any[]>(() => cachedInventoryData?.products || []);
+  const [profile, setProfile] = useState<any>(() => cachedInventoryData?.profile || { currency: "₹" });
+  const [loading, setLoading] = useState(!cachedInventoryData);
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("");
 
@@ -41,8 +44,8 @@ export default function InventoryPage() {
 
   const currency = profile.currency || "₹";
 
-  const loadData = async () => {
-    setLoading(true);
+  const loadData = async (silent = false) => {
+    if (!silent && !cachedInventoryData) setLoading(true);
     try {
       const [prods, prof] = await Promise.all([
         getProducts(),
@@ -50,6 +53,7 @@ export default function InventoryPage() {
       ]);
       setProducts(prods);
       setProfile(prof);
+      cachedInventoryData = { products: prods, profile: prof };
     } catch (err) {
       console.error(err);
     } finally {
@@ -58,7 +62,7 @@ export default function InventoryPage() {
   };
 
   useEffect(() => {
-    loadData();
+    loadData(Boolean(cachedInventoryData));
   }, []);
 
   const handleOpenAdd = () => {

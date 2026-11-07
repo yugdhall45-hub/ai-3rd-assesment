@@ -12,17 +12,21 @@ import {
 } from "lucide-react";
 import { getBusinessProfile, updateBusinessProfile } from "@/lib/actions";
 
+// Module-level in-memory cache for instant 0ms tab switching
+let cachedProfileData: any = null;
+
 export default function SettingsPage() {
-  const [profile, setProfile] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  const [profile, setProfile] = useState<any>(() => cachedProfileData);
+  const [loading, setLoading] = useState(!cachedProfileData);
   const [saving, setSaving] = useState(false);
   const [successMsg, setSuccessMsg] = useState("");
 
-  const loadProfile = async () => {
-    setLoading(true);
+  const loadProfile = async (silent = false) => {
+    if (!silent && !cachedProfileData) setLoading(true);
     try {
       const p = await getBusinessProfile();
       setProfile(p);
+      cachedProfileData = p;
     } catch (e) {
       console.error(e);
     } finally {
@@ -31,7 +35,7 @@ export default function SettingsPage() {
   };
 
   useEffect(() => {
-    loadProfile();
+    loadProfile(Boolean(cachedProfileData));
   }, []);
 
   const handleSave = async (e: React.FormEvent) => {

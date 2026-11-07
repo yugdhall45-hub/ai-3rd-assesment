@@ -19,24 +19,37 @@ import {
 } from "lucide-react";
 import { getDaybook, saveDaybookRegister, getBusinessProfile } from "@/lib/actions";
 
+// Module-level in-memory cache for instant 0ms tab switching
+const cachedDaybookMap: Record<string, { dayData: any; profile: any }> = {};
+
 export default function DaybookPage() {
   const [selectedDate, setSelectedDate] = useState<string>(
     new Date().toISOString().split("T")[0]
   );
-  const [dayData, setDayData] = useState<any>(null);
-  const [profile, setProfile] = useState<any>({ currency: "₹", name: "SmartBazaar Local Mart" });
-  const [loading, setLoading] = useState(true);
+  const initialCache = cachedDaybookMap[new Date().toISOString().split("T")[0]];
+  const [dayData, setDayData] = useState<any>(() => initialCache?.dayData || null);
+  const [profile, setProfile] = useState<any>(
+    () => initialCache?.profile || { currency: "₹", name: "SmartBazaar Local Mart" }
+  );
+  const [loading, setLoading] = useState(!initialCache);
 
   // Reconciliation drawer inputs
-  const [openingCashInput, setOpeningCashInput] = useState<string>("");
-  const [actualCashInput, setActualCashInput] = useState<string>("");
-  const [notesInput, setNotesInput] = useState<string>("");
+  const [openingCashInput, setOpeningCashInput] = useState<string>(
+    () => String(initialCache?.dayData?.register?.openingCash || 0)
+  );
+  const [actualCashInput, setActualCashInput] = useState<string>(
+    () => (initialCache?.dayData?.register?.actualCash != null ? String(initialCache.dayData.register.actualCash) : "")
+  );
+  const [notesInput, setNotesInput] = useState<string>(
+    () => initialCache?.dayData?.register?.notes || ""
+  );
   const [saving, setSaving] = useState(false);
 
   const currency = profile.currency || "₹";
 
-  const fetchDay = async (dateStr: string) => {
-    setLoading(true);
+  const fetchDay = async (dateStr: string, silent = false) => {
+    const hasCache = Boolean(cachedDaybookMap[dateStr]);
+    if (!silent && !hasCache) setLoading(true);
     try {
       const [res, prof] = await Promise.all([
         getDaybook(dateStr),
@@ -44,6 +57,7 @@ export default function DaybookPage() {
       ]);
       setDayData(res);
       setProfile(prof);
+      cachedDaybookMap[dateStr] = { dayData: res, profile: prof };
 
       // sync inputs
       setOpeningCashInput(String(res.register.openingCash || 0));
@@ -61,7 +75,7 @@ export default function DaybookPage() {
   };
 
   useEffect(() => {
-    fetchDay(selectedDate);
+    fetchDay(selectedDate, Boolean(cachedDaybookMap[selectedDate]));
   }, [selectedDate]);
 
   const changeDateByDays = (days: number) => {

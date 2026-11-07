@@ -22,18 +22,24 @@ function formatDate(d: Date): string {
   return `${y}-${m}-${day}`;
 }
 
+// Module-level in-memory cache for instant 0ms tab switching
+const cachedReportsMap: Record<string, { data: any; profile: any }> = {};
+
 export default function ReportsPage() {
   const todayStr = formatDate(new Date());
   const [startDate, setStartDate] = useState(todayStr);
   const [endDate, setEndDate] = useState(todayStr);
-  const [data, setData] = useState<any>(null);
-  const [profile, setProfile] = useState<any>({ currency: "₹", name: "SmartBazaar Local Mart" });
-  const [loading, setLoading] = useState(true);
+  const initialCache = cachedReportsMap[`${todayStr}_${todayStr}`];
+  const [data, setData] = useState<any>(() => initialCache?.data || null);
+  const [profile, setProfile] = useState<any>(() => initialCache?.profile || { currency: "₹", name: "SmartBazaar Local Mart" });
+  const [loading, setLoading] = useState(!initialCache);
 
   const currency = profile.currency || "₹";
 
-  const loadData = async (s: string, e: string) => {
-    setLoading(true);
+  const loadData = async (s: string, e: string, silent = false) => {
+    const key = `${s}_${e}`;
+    const hasCache = Boolean(cachedReportsMap[key]);
+    if (!silent && !hasCache) setLoading(true);
     try {
       const [rep, prof] = await Promise.all([
         getReports(s, e),
@@ -41,6 +47,7 @@ export default function ReportsPage() {
       ]);
       setData(rep);
       setProfile(prof);
+      cachedReportsMap[key] = { data: rep, profile: prof };
     } catch (err) {
       console.error(err);
     } finally {
@@ -49,7 +56,8 @@ export default function ReportsPage() {
   };
 
   useEffect(() => {
-    loadData(startDate, endDate);
+    const key = `${startDate}_${endDate}`;
+    loadData(startDate, endDate, Boolean(cachedReportsMap[key]));
   }, [startDate, endDate]);
 
   const setPresetRange = (preset: "today" | "7days" | "month" | "year") => {

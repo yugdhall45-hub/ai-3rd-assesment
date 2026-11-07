@@ -21,10 +21,13 @@ import {
   getBusinessProfile,
 } from "@/lib/actions";
 
+// Module-level in-memory cache for instant 0ms tab switching
+let cachedCustomersData: { customers: any[]; profile: any } | null = null;
+
 export default function CustomersPage() {
-  const [customers, setCustomers] = useState<any[]>([]);
-  const [profile, setProfile] = useState<any>({ currency: "₹" });
-  const [loading, setLoading] = useState(true);
+  const [customers, setCustomers] = useState<any[]>(() => cachedCustomersData?.customers || []);
+  const [profile, setProfile] = useState<any>(() => cachedCustomersData?.profile || { currency: "₹" });
+  const [loading, setLoading] = useState(!cachedCustomersData);
   const [search, setSearch] = useState("");
   const [filterDueOnly, setFilterDueOnly] = useState(false);
 
@@ -44,8 +47,8 @@ export default function CustomersPage() {
 
   const currency = profile.currency || "₹";
 
-  const loadData = async () => {
-    setLoading(true);
+  const loadData = async (silent = false) => {
+    if (!silent && !cachedCustomersData) setLoading(true);
     try {
       const [custs, prof] = await Promise.all([
         getCustomers(),
@@ -53,6 +56,7 @@ export default function CustomersPage() {
       ]);
       setCustomers(custs);
       setProfile(prof);
+      cachedCustomersData = { customers: custs, profile: prof };
     } catch (err) {
       console.error(err);
     } finally {
@@ -61,7 +65,7 @@ export default function CustomersPage() {
   };
 
   useEffect(() => {
-    loadData();
+    loadData(Boolean(cachedCustomersData));
   }, []);
 
   const handleCreateCustomer = async (e: React.FormEvent) => {
